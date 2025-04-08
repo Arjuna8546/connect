@@ -5,7 +5,8 @@ import re
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
-        fields = ['username','email','date_of_birth','phone_no','password','gender']
+        fields = ['id','username','email','date_of_birth','phone_no','password','gender','profile_url','gov_url']
+        read_only_fields = ['id']
         extra_kwargs = {
             'password' : {'write_only': True}
         }

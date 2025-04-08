@@ -9,8 +9,11 @@ import {
   PayPalIcon,
   LogoutIcon,
 } from "./Icons";
+import { logout } from "../../../Endpoints/APIs";
+import { useNavigate } from "react-router-dom";
 
 const NavigationMenu = () => {
+  const nav = useNavigate()
   const menuItems = [
     {
       icon: CarIcon,
@@ -30,7 +33,7 @@ const NavigationMenu = () => {
     {
       icon: ProfileIcon,
       label: "Profile",
-      onClick: () => console.log("Profile clicked"),
+      onClick: () => nav('/profile'),
     },
     {
       icon: PayPalIcon,
@@ -40,7 +43,10 @@ const NavigationMenu = () => {
     {
       icon: LogoutIcon,
       label: "log out",
-      onClick: () => console.log("Logout clicked"),
+      onClick: async() => {
+        await logout()
+        nav('/login')
+      },
     },
   ];
 

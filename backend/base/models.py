@@ -34,9 +34,16 @@ class Users(AbstractBaseUser):
         ("male","Male"),
         ("female","Female")
     ]
+    GOVID_STATUS_CHOICES = [
+        ("pending","Pending"),
+        ("reject","Reject"),
+        ("verified","Verified"),
+    ]
 
     username = models.CharField(max_length=150, unique=True)
     profile_url = models.URLField(blank=True,null=True)
+    gov_url = models.URLField(blank=True,null=True)
+    gov_status = models.CharField(max_length=10,choices=GOVID_STATUS_CHOICES,default="pending")
     bio = models.TextField(blank=True,null=True)
     gender = models.CharField(max_length=10,choices=GENDER_CHOICES,default="male")
     email =models.EmailField(unique=True)

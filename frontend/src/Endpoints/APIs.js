@@ -17,3 +17,12 @@ export const verify = (formBody) => axios.post(
     formBody,
 )
 
+export const updateuser = (formBody) => axios.patch(
+    'update/user/',
+    formBody,
+)
+
+export const logout = () => axios.post(
+    'logout/',
+    {}
+)

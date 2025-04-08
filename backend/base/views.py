@@ -18,6 +18,7 @@ import random
 import time
 
 class CoustomTokenObtainPairView(TokenObtainPairView):
+    permission_classes = [permissions.AllowAny]
     def post(self, request,*args, **kwargs):
 
         try:
@@ -39,8 +40,7 @@ class CoustomTokenObtainPairView(TokenObtainPairView):
             res = Response(status=status.HTTP_200_OK)
 
             user = Users.objects.get(email=email)
-
-            res.data = {"success":True,"message":"user login successfully","userDetails":{"username":user.username,"email":user.email,"date_of_birth":user.date_of_birth,"phone_no":user.phone_no}}
+            res.data = {"success":True,"message":"user login successfully","userDetails":{"user_id":user.id,"username":user.username,"email":user.email,"date_of_birth":user.date_of_birth,"phone_no":user.phone_no,"gender":user.gender,"profileUrl":user.profile_url,"status":user.status,"verified":user.is_verified,"bio":user.bio,"gov_url":user.gov_url,"gov_status":user.gov_status}}
 
             res.set_cookie(
                 key = "access_token",
@@ -76,11 +76,11 @@ class CoustomTokenObtainPairView(TokenObtainPairView):
             )
 
 class CoustomTokenRefreshView(TokenRefreshView):
+    permission_classes = [permissions.AllowAny]
     def post(self,request,*args,**kwargs):
         
         try:
             refresh_token = request.COOKIES.get("refresh_token")
-
             if not refresh_token:
                 return Response(
                     {"success":False,"message":"referesh token not Found"},
@@ -108,13 +108,38 @@ class CoustomTokenRefreshView(TokenRefreshView):
                 value=access_token,
                 httponly=True,
                 secure=True,
-                samesite=None,
-                path='/'
+                samesite="None",
+                path='/',
+                max_age=3600
             )
 
             return res
         except Exception as e:
             return Response({"success":False,"message":f"An error occured: {str(e)}"},status=status.HTTP_400_BAD_REQUEST)
+        
+class Logout(APIView):
+    permission_classes=[permissions.IsAuthenticated]
+    
+    def post(self,request):
+        try:
+            res = Response(status=status.HTTP_200_OK)
+            res.data = {"success":True, "message":"logout successfully"}
+            res.delete_cookie(
+                key="access_token",
+                path='/',
+                samesite='None',
+                
+            )
+            res.delete_cookie(
+                key="refresh_token",
+                path='/',
+                samesite='None',
+                
+            )
+
+            return res
+        except Exception as e:
+            return Response({"success":False , "message": f"Logout failed: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
 def generate_otp():
     return str(random.randint(10000,99999))
@@ -196,3 +221,41 @@ class VerifyOtp(APIView):
             status = status.HTTP_400_BAD_REQUEST
         )
     
+class UpdateUser(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    def patch(self, request):
+        try:
+            user = Users.objects.get(id=request.data["user_id"])
+            serializer = UserRegistrationSerializer(user, data=request.data, partial=True)
+            if serializer.is_valid():
+                user = serializer.save()
+                return Response({
+                    "success": True,
+                    "message": "Profile updated successfully",
+                    "userDetails": {
+                        "user_id":user.id,
+                        "username": user.username,
+                        "email": user.email,
+                        "date_of_birth": user.date_of_birth,
+                        "phone_no": user.phone_no,
+                        "gender": user.gender,
+                        "profileUrl": user.profile_url,
+                        "status": user.status,
+                        "verified": user.is_verified,
+                        "bio": user.bio,
+                        "gov_url":user.gov_url,
+                        "gov_status":user.gov_status
+                    }
+                }, status=status.HTTP_200_OK)
+            return Response({
+                "success": False,
+                "errors": serializer.errors,
+                "message": "Validation failed"
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({
+                "success": False,
+                "message": f"An error occurred while updating profile: {str(e)}"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            

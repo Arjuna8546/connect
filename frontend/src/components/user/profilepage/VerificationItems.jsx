@@ -1,8 +1,8 @@
-export const VerificationItem = ({ icon, title, subtitle }) => {
+export const VerificationItem = ({ onClick,icon, title, subtitle }) => {
     return (
       <div className="flex flex-col gap-5">
         <div className="flex gap-4 items-center">
-          <div dangerouslySetInnerHTML={{ __html: icon }} />
+          <div dangerouslySetInnerHTML={{ __html: icon }} onClick={onClick} />
           <h3 className="text-sm font-bold text-white uppercase tracking-[2.73px]">
             {title}
           </h3>

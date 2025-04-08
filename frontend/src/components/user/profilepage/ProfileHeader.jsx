@@ -1,17 +1,67 @@
-export const ProfileHeader = () => {
-    return (
-      <section className="p-8 w-full rounded-3xl backdrop-blur-[[7.5px]] bg-zinc-900 bg-opacity-50 max-w-[943px]">
-        <div className="flex gap-8 items-center">
-          <div className="relative h-[119px] w-[114px]">
+import { useRef } from "react";
+import { updateuser } from "../../../Endpoints/APIs";
+import { useDispatch } from "react-redux";
+import { setUser } from "../../../store/slices/UserSlice";
+import toast from "react-hot-toast";
+
+export const ProfileHeader = ({ user_id, username, profileUrl, verified }) => {
+  const dispatch = useDispatch()
+  const fileInputRef = useRef();
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    const formData = new FormData();
+
+    formData.append("file", file);
+    formData.append("upload_preset", "connect_preset");
+    formData.append("folder", "connect");
+
+    if (file) {
+      try {
+        const response = await fetch("https://api.cloudinary.com/v1_1/dljqwak5o/image/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        const res = await updateuser({ "user_id": user_id, "profile_url": data.secure_url })
+        if (res.data?.success === true) {
+          dispatch(setUser(res?.data?.userDetails))
+          toast.success(res?.data?.message)
+        }
+
+      } catch (error) {
+        console.error("Upload error:", error);
+      }
+    }
+  };
+
+
+  return (
+    <section className="p-8 w-full rounded-3xl backdrop-blur-[7.5px] bg-zinc-900 bg-opacity-50 max-w-[943px]">
+      <div className="flex gap-8 items-center">
+        <div className="relative h-[119px] w-[114px]">
+          <label htmlFor="avatarInput" className="cursor-pointer block w-full h-full">
             <img
-              src="https://placehold.co/114x119/3897F0/3897F0"
+              src={profileUrl || "/userAvatar.png"}
               alt="Profile"
               className="w-full h-full rounded-[119px] border-[2px] border-[#3897F0]"
             />
-          </div>
-          <div className="flex flex-col gap-1">
-            <div className="flex gap-2 items-center">
-              <h2 className="text-xl text-stone-300">Sundhar kum</h2>
+          </label>
+          <input
+            type="file"
+            id="avatarInput"
+            accept="image/*"
+            className="hidden"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <div className="flex gap-2 items-center">
+            <h2 className="text-xl text-stone-300">{username}</h2>
+            {verified && (
               <svg
                 width="16"
                 height="17"
@@ -25,13 +75,13 @@ export const ProfileHeader = () => {
                   fill="#3897F0"
                 />
               </svg>
-            </div>
-            <div className="flex gap-5 items-center">
-              <svg id="60:3778" className="w-[53px] h-[60px]"></svg>
-            </div>
+            )}
+          </div>
+          <div className="flex gap-5 items-center">
+            <svg id="60:3778" className="w-[53px] h-[60px]"></svg>
           </div>
         </div>
-      </section>
-    );
-  };
-  
+      </div>
+    </section>
+  );
+};

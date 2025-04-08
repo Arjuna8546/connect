@@ -1,6 +1,6 @@
 
 from django.urls import path
-from base.views import CoustomTokenObtainPairView,CoustomTokenRefreshView,Register,VerifyOtp
+from base.views import CoustomTokenObtainPairView,CoustomTokenRefreshView,Register,VerifyOtp,UpdateUser,Logout
 
 urlpatterns = [
 
@@ -8,5 +8,7 @@ urlpatterns = [
     path('token/refresh/', CoustomTokenRefreshView.as_view(), name='token_refresh'),
     path('register/',Register.as_view(),name="registration"),
     path('verifyotp/',VerifyOtp.as_view(),name="verify-otp"),
+    path('update/user/',UpdateUser.as_view(),name="update-user"),
+    path('logout/',Logout.as_view(),name="logout"),
 
 ]

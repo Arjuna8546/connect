@@ -14,7 +14,7 @@ axiosInstance.interceptors.response.use(
             originalRequest._retry = true;
             try {
                 await axios.post(
-                    "token/refresh/",
+                    "http://127.0.0.1:8000/api/token/refresh/",
                     {},
                     { withCredentials: true }
                 )
