@@ -1,0 +1,22 @@
+import React from "react";
+
+const Logo = () => {
+    return (
+        <header className="flex gap-2.5 justify-center items-center mb-10">
+            <h1 className="flex items-end text-4xl font-bold text-white gap-0">
+                <span>Co</span>
+                <img
+                    src="/connectlogo.png"
+                    alt="nostr-head"
+                    className="h-[46px] w-[48px] align-bottom"
+                />
+                <span >ect</span>
+            </h1>
+
+
+
+        </header>
+    );
+};
+
+export default Logo;

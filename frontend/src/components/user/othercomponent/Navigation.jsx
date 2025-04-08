@@ -1,0 +1,80 @@
+"use client";
+import Logo from "./Logo";
+import { DropdownIcon, LoginIcon } from "../homepage/Icons";
+import NavigationMenu from "../homepage/NavigationMenu";
+import { useState, useEffect, useRef } from "react";
+
+export const Navigation = () => {
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null);
+
+  // Close menu on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    }
+
+    if (showMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showMenu]);
+
+  return (
+    <header className="flex justify-between items-center px-20 border border-gray-700 border-opacity-10 h-[104px] max-md:px-10 max-sm:px-5">
+      <div className="flex gap-5 items-center">
+        <div className="flex items-center">
+          <Logo />
+        </div>
+      </div>
+
+      <nav className="flex gap-6 items-center">
+        <button className="flex gap-1.5 items-center text-xs font-bold tracking-widest text-white uppercase max-md:hidden">
+          <span>About us</span>
+          <DropdownIcon />
+        </button>
+
+        <button className="px-10 py-4 text-xs font-bold tracking-widest text-white uppercase bg-[linear-gradient(57deg,#0A0A0A_0%,#3D3B3B_50%,#0A0A0A_100%)] rounded-[50px]">
+          post a ride
+        </button>
+
+        <button
+          onClick={() => setShowMenu((prev) => !prev)}
+          
+          className="p-5 cursor-pointer max-md:hidden"
+        >
+          <LoginIcon />
+        </button>
+      </nav>
+
+      <button
+        className="hidden gap-5 items-center max-md:flex"
+        onClick={() => setShowMenu((prev) => !prev)}
+        aria-label="Menu"
+      >
+        <div className="flex flex-col gap-2 justify-center items-center h-5 w-[30px]">
+          <span className="h-0.5 bg-white bg-opacity-90 w-[30px]" />
+          <span className="w-4 h-0.5 bg-white bg-opacity-90" />
+          <span className="h-0.5 bg-white bg-opacity-90 w-[30px]" />
+        </div>
+      </button>
+
+      {showMenu && (
+        <div
+          ref={menuRef}
+          className="absolute top-[104px] left-0 md:left-auto md:right-0 w-full md:w-auto z-50"
+        >
+          <NavigationMenu />
+        </div>
+      )}
+    </header>
+  );
+};
+
