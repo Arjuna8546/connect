@@ -47,13 +47,17 @@ INSTALLED_APPS = [
     'rest_framework',
     "corsheaders",
 
-    'base'
+    'base',
+    'Admin'
 ]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'base.authentication.CoustomJWTAuthentication',
-    )
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
 
 MIDDLEWARE = [

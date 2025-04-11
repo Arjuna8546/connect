@@ -11,7 +11,6 @@ const ProfileDetailModal = ({ isOpen = true, onClose, user }) => {
     const formik = useFormik({
         initialValues: {
             username: user?.username || "",
-            email: user?.email || "",
             phone_no: user?.phone_no || "",
             date_of_birth: user?.date_of_birth || "",
             gender: user?.gender || "",
@@ -22,7 +21,6 @@ const ProfileDetailModal = ({ isOpen = true, onClose, user }) => {
                 .min(3, "Username must be at least 3 characters")
                 .matches(/^[a-zA-Z0-9_]+$/, "Only letters, numbers, and underscores are allowed")
                 .required("Username is required"),
-            email: Yup.string().email("Invalid email address").required("Email is required"),
             phone_no: Yup.string()
                 .matches(/^[0-9]{10}$/, "Phone number must be 10 digits")
                 .required("Phone number is required"),
@@ -113,7 +111,7 @@ const ProfileDetailModal = ({ isOpen = true, onClose, user }) => {
                     <h1 className="mb-8 text-xl font-bold text-neutral-950">EDIT PROFILE DETAILS</h1>
 
                     <div className="flex flex-col gap-5">
-                        {["username", "email", "phone_no", "gender", "date_of_birth"].map((field) => (
+                        {["username", "phone_no", "gender", "date_of_birth"].map((field) => (
                             <div key={field}>
                                 <input
                                     type={field === "date_of_birth" ? "date" : "text"}

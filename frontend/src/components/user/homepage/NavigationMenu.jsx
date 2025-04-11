@@ -8,13 +8,21 @@ import {
   ProfileIcon,
   PayPalIcon,
   LogoutIcon,
+  LoginIconBlack,
 } from "./Icons";
 import { logout } from "../../../Endpoints/APIs";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteUser, deleteVehicles } from "../../../store/slices/UserSlice";
+import toast from "react-hot-toast";
+
+
 
 const NavigationMenu = () => {
   const nav = useNavigate()
-  const menuItems = [
+  const dispatch = useDispatch()
+  const user = useSelector((state)=>state.user.user)
+  const baseMenuItems = [
     {
       icon: CarIcon,
       label: "booked rides",
@@ -40,15 +48,28 @@ const NavigationMenu = () => {
       label: "Payments",
       onClick: () => console.log("Payments clicked"),
     },
-    {
-      icon: LogoutIcon,
-      label: "log out",
-      onClick: async() => {
-        await logout()
-        nav('/login')
-      },
-    },
   ];
+
+  const authMenuItem = user
+    ? {
+        icon: LogoutIcon,
+        label: "log out",
+        onClick: async () => {
+          await logout();
+          dispatch(deleteUser());
+          dispatch(deleteVehicles());
+          nav("/login");
+          toast.success("logged out successfully")
+        },
+      }
+    : {
+        icon: LoginIconBlack,
+        label: "log in",
+        onClick: () => nav("/login"),
+      };
+
+  const menuItems = [...baseMenuItems, authMenuItem];
+
 
   return (
     <nav className="w-80 bg-white border border-solid border-b-[none] border-neutral-400 max-sm:w-full">

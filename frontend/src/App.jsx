@@ -5,6 +5,7 @@ import UserRoute from "./Routes/UserRoute"
 import { Provider } from "react-redux"
 import { store, persistor } from "./store/store"
 import { PersistGate } from "redux-persist/integration/react";
+import AdminRoute from "./Routes/AdminRoute"
 
 function App() {
 
@@ -16,6 +17,7 @@ function App() {
           <Router>
             <Routes>
               <Route path="/*" element={<UserRoute />}></Route>
+              <Route path="/admin/*" element={<AdminRoute />}></Route>
             </Routes>
           </Router>
         </PersistGate>

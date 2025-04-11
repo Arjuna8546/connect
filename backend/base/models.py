@@ -64,3 +64,25 @@ class Users(AbstractBaseUser):
     def __str__(self):
         return self.username
 
+
+
+class Vehicles(models.Model):
+    
+    VEHICLE_TYPE_CHOICES =[
+        ("sedan","Sedan"),
+        ("SUV","suv"),
+        ("hatchback","Hatchback"),
+        ("Wagon","wagon"),
+        ("Minivan","minivan"),
+        ("Coupe","coupe")
+    ]
+    
+    user = models.ForeignKey('Users', on_delete=models.CASCADE, null=False)
+    vehicle_type = models.CharField(max_length=50,choices=VEHICLE_TYPE_CHOICES,default="sedan")
+    selected_vehicle = models.BooleanField(default=False)
+    vehicle_model = models.CharField(max_length=50)
+    vehicle_color = models.CharField(max_length=50)
+    vehicle_register_no = models.CharField(max_length=50, unique=True)
+    vehicle_bio = models.CharField(max_length=255,blank=True,null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

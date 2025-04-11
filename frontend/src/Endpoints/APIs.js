@@ -26,3 +26,18 @@ export const logout = () => axios.post(
     'logout/',
     {}
 )
+
+export const registerVehicle = (formBody) => axios.post(
+    'register/vehicle',
+    formBody
+)
+
+export const getVehicles = (user_id) => axios.get(
+    `vehicles/${user_id}/`
+)
+
+export const updateVehicles = (formBody)=>axios.patch(
+    'update/vehicle/',
+    formBody
+)
+

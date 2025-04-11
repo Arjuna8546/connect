@@ -3,12 +3,11 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from rest_framework.views import APIView
-from .models import Users
+from .models import Users,Vehicles
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
-from http import HTTPStatus
-from .serializer import UserRegistrationSerializer
+from .serializer import UserRegistrationSerializer,VehicleRegistrationSerializer,CustomTokenObtainPairSerializer
 from rest_framework import permissions
 
 from django.core.mail import send_mail
@@ -18,7 +17,10 @@ import random
 import time
 
 class CoustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
     permission_classes = [permissions.AllowAny]
+    
+    
     def post(self, request,*args, **kwargs):
 
         try:
@@ -222,7 +224,6 @@ class VerifyOtp(APIView):
         )
     
 class UpdateUser(APIView):
-    permission_classes = [permissions.IsAuthenticated]
     def patch(self, request):
         try:
             user = Users.objects.get(id=request.data["user_id"])
@@ -259,3 +260,58 @@ class UpdateUser(APIView):
                 "message": f"An error occurred while updating profile: {str(e)}"
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
+
+class AddVehicle(APIView):
+    
+    def get(self, request, user_id):    
+        vehicles = Vehicles.objects.filter(user_id=user_id)
+        serializer = VehicleRegistrationSerializer(vehicles, many=True)
+        return Response({
+            "success": True,
+            "vehicles": serializer.data 
+        }, status=status.HTTP_200_OK)       
+    
+    def post(self,request):
+        serializer = VehicleRegistrationSerializer(data = request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"success": True, "data": serializer.data}, status=status.HTTP_201_CREATED)
+        return Response({"success": False, "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def patch(self, request):
+        selected_id = request.data.get("vehicle_id")
+        user = request.data.get("user_id")
+
+        if not selected_id:
+            return Response({
+                "success": False,
+                "message": "Vehicle ID is required"
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            vehicle = Vehicles.objects.get(id=selected_id, user=user)
+
+            Vehicles.objects.filter(user=user).update(selected_vehicle=False)
+
+            vehicle.selected_vehicle = True
+            vehicle.save()
+            
+            all_vehicles = Vehicles.objects.filter(user=user)
+            serializer = VehicleRegistrationSerializer(all_vehicles, many=True)
+            return Response({
+                "success": True,
+                "vehicle": serializer.data
+            }, status=status.HTTP_200_OK)
+
+        except Vehicles.DoesNotExist:
+            return Response({
+                "success": False,
+                "message": "Vehicle not found or does not belong to user"
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as e:
+            return Response({
+                "success": False,
+                "message": "An error occurred",
+                "error": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
