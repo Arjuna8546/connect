@@ -35,10 +35,14 @@ import toast from "react-hot-toast";
         console.error("Logout error:", error);
       }
     };
+
+    const onUserManagement = ()=>{
+      nav('/admin/dashboard')
+    }
     
     return (
       <nav className="fixed border-r border-solid bg-stone-950 border-r-neutral-800 w-[258px] h-[calc(100vh-104px)] max-md:hidden">
-        <NavItem icon={UserFriendsIcon} label="user management" />
+        <NavItem icon={UserFriendsIcon} label="user management" onClick={onUserManagement} />
         <NavItem icon={DiscourseIcon} label="ALL rides" />
         <NavItem icon={UserIcon} label="BOOKINGS" />
         <NavItem icon={PayPalIcon} label="reports" />

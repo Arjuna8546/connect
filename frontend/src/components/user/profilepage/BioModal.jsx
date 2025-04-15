@@ -10,7 +10,7 @@ const BioModal = ({ isOpen, onClose, user }) => {
     const [bio,setBio] = useState(user.bio)
     const handleSubmit = async () => {
         try {
-          const response = await updateuser({ user_id: user.user_id, bio });
+          const response = await updateuser({ user_id: user.id, bio });
           if (response?.data?.success === true) {
             dispatch(setUser(response.data.userDetails));
             toast.success(response?.data?.message);

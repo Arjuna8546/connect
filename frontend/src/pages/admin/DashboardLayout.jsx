@@ -5,7 +5,6 @@ import Sidebar from "../../components/admin/othercomponet/Sidebar";
 import UserManagement from "../../components/admin/dashboardpage/UserManagement";
 import { useEffect, useState } from "react";
 import { admingetallusers } from "../../Endpoints/AdminAPI";
-import toast from "react-hot-toast";
 import Pagination from "../../components/user/othercomponent/Pagination";
 
 
@@ -15,6 +14,7 @@ const DashboardLayout = () => {
     const [total, setTotal] = useState()
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [verified, setVerified] = useState(null)
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -27,7 +27,7 @@ const DashboardLayout = () => {
     useEffect(() => {
         const handleGetUser = async () => {
 
-            const response = await admingetallusers(current, debouncedSearch);
+            const response = await admingetallusers(current, debouncedSearch, verified);
             if (response?.data?.results?.success === true) {
                 setUsers(response.data.results.users);
                 setTotal(Math.ceil(response.data.count / 10))
@@ -36,7 +36,7 @@ const DashboardLayout = () => {
         };
 
         handleGetUser();
-    }, [current, debouncedSearch]);
+    }, [current, debouncedSearch, verified]);
     return (
         <>
             <link
@@ -52,8 +52,20 @@ const DashboardLayout = () => {
                     </div>
 
                 </div>
-                <div className="py-5 mb-7">
+                <div className="flex justify-center items-center gap-5 py-6">
+                    <button
+                        onClick={() => setVerified(true)}
+                        className={"px-6 py-2.5 rounded-full border-2 transition-all duration-200 text-sm font-medium uppercase border-white text-white hover:bg-white hover:text-black"}
+                    >
+                        verified users
+                    </button>
                     <Pagination total={total} current={current} setPage={setPage} />
+                    <button
+                        onClick={() => setVerified(false)}
+                        className={"px-6 py-2.5 rounded-full border-2 transition-all duration-200 text-sm font-medium uppercase border-white text-white hover:bg-white hover:text-black"}
+                    >
+                        Unverified users
+                    </button>
                 </div>
             </div>
         </>

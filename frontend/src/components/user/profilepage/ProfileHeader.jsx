@@ -4,7 +4,7 @@ import { useDispatch } from "react-redux";
 import { setUser } from "../../../store/slices/UserSlice";
 import toast from "react-hot-toast";
 
-export const ProfileHeader = ({ user_id, username, profileUrl, verified }) => {
+export const ProfileHeader = ({ user_id, username, profile_url, is_verified }) => {
   const dispatch = useDispatch()
   const fileInputRef = useRef();
 
@@ -44,7 +44,7 @@ export const ProfileHeader = ({ user_id, username, profileUrl, verified }) => {
         <div className="relative h-[119px] w-[114px]">
           <label htmlFor="avatarInput" className="cursor-pointer block w-full h-full">
             <img
-              src={profileUrl || "/userAvatar.png"}
+              src={profile_url || "/userAvatar.png"}
               alt="Profile"
               className="w-full h-full rounded-[119px] border-[2px] border-[#3897F0]"
             />
@@ -61,7 +61,7 @@ export const ProfileHeader = ({ user_id, username, profileUrl, verified }) => {
         <div className="flex flex-col gap-1">
           <div className="flex gap-2 items-center">
             <h2 className="text-xl text-stone-300">{username}</h2>
-            {verified && (
+            {is_verified && (
               <svg
                 width="16"
                 height="17"

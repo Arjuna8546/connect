@@ -168,13 +168,20 @@ class AdminAllUser(APIView):
     def get(self,request):
         try: 
             search_query = request.GET.get('search', '')
-            users = Users.objects.all().order_by('id')
+            verified = request.GET.get('verified', None)
+            users = Users.objects.filter(role="user").order_by('id')
+
             if search_query:
                 users = users.filter(
                     Q(username__icontains=search_query) |
                     Q(email__icontains=search_query) |
                     Q(phone_no__icontains=search_query)
                 )
+            if verified is not None:
+                if verified.lower() == 'true':
+                    users = users.filter(is_verified=True)
+                elif verified.lower() == 'false':
+                    users = users.filter(is_verified=False)
             paginator = PageNumberPagination()
             paginator.page_size = 7
             result_page = paginator.paginate_queryset(users, request)
@@ -187,3 +194,32 @@ class AdminAllUser(APIView):
         except Exception as e:
             return Response({"success":False,"message":f"An error occured: {str(e)}"},status=status.HTTP_400_BAD_REQUEST)
             
+class VerifyUsers(APIView):
+    permission_classes=[IsAdmin]
+    def get(self,request):
+        try: 
+            search_query = request.GET.get('search', '')
+            users = Users.objects.filter(
+                Q(role="user") & 
+                Q(gov_url__isnull=False) & 
+                Q(gov_status="pending")
+            ).order_by('id').order_by('id')
+
+            if search_query:
+                users = users.filter(
+                    Q(username__icontains=search_query) |
+                    Q(email__icontains=search_query) |
+                    Q(phone_no__icontains=search_query)
+                )
+
+            paginator = PageNumberPagination()
+            paginator.page_size = 7
+            result_page = paginator.paginate_queryset(users, request)
+            serializer = UserRegistrationSerializer(result_page,many=True)
+            return paginator.get_paginated_response({
+                "success": True,
+                "message": "All users retrieved successfully",
+                "users": serializer.data
+            })
+        except Exception as e:
+            return Response({"success":False,"message":f"An error occured: {str(e)}"},status=status.HTTP_400_BAD_REQUEST)

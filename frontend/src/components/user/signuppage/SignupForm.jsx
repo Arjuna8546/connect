@@ -6,12 +6,13 @@ import PasswordInput from '../loginpage/Passwordinput';
 import { register } from '../../../Endpoints/APIs';
 
 import VerificationCodeModal from '../../../pages/VerificationCodeModal';
+import { useNavigate } from 'react-router-dom';
 
 
 function SignupForm() {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-
+    const nav = useNavigate()
 
     const formik = useFormik({
         initialValues: {
@@ -215,7 +216,7 @@ function SignupForm() {
 
                 <p className="mt-3 text-xs text-gray-400">
                     Already have an account?{" "}
-                    <button type="button" className="uppercase">
+                    <button type="button" className="uppercase" onClick={()=>nav('/login')}>
                         LOGIN
                     </button>
                 </p>

@@ -41,3 +41,36 @@ export const updateVehicles = (formBody)=>axios.patch(
     formBody
 )
 
+export const getalluservehicles = (user_id) => axios.get(
+    `getuservehicle/${user_id}/`
+)
+
+export const forgetpassword = (formBody) => axios.post(
+    'forgetpassword/',
+    formBody
+)
+
+export const forgetpasswordverifyotp = (formBody) => axios.post(
+    'verifyforgetpasswordotp/',
+    formBody
+)
+
+export const changepassword = (formBody) => axios.post(
+    'changepassword/',
+    formBody
+)
+
+export const restpassword = (formBody) =>axios.post(
+    'resetpassword/',
+    formBody
+)
+
+export const google = (formBody) =>axios.post(
+    'google/',
+    formBody
+)
+
+export const checkgoogle = (formBody) =>axios.post(
+    'google/check/',
+    formBody
+)

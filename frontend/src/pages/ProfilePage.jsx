@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigation } from "../components/user/othercomponent/Navigation";
 import { ProfileHeader } from "../components/user/profilepage/ProfileHeader";
 import { ProfileSection } from "../components/user/profilepage/ProfileSection";
@@ -8,9 +8,11 @@ import ProfileDetailModal from "../components/user/profilepage/ProfileDetailModa
 import ProfileGovUpload from "../components/user/profilepage/ProfileGovUploadModal";
 import VehicleDetailModal from "../components/user/profilepage/VehicleDetailModal";
 import VehicleSelector from "../components/user/profilepage/VehicleSelector";
-import { updateVehicles } from "../Endpoints/APIs";
-import { setVehicles } from "../store/slices/UserSlice";
+import { getalluservehicles, updateVehicles } from "../Endpoints/APIs";
+import { setUser, setVehicles } from "../store/slices/UserSlice";
 import BioModal from "../components/user/profilepage/BioModal";
+import { useLocation } from "react-router-dom";
+import PasswordChangeModal from "../components/user/profilepage/PasswordChangeModal";
 
 export const ProfilePage = () => {
   const verificationIcon = `<svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -19,11 +21,13 @@ export const ProfilePage = () => {
   const user = useSelector((state) => state.user)
   const vehicles = useSelector((state) => state.user.vehicles);
   const dispatch = useDispatch()
+  const location = useLocation()
 
   const [isModelOpen, setISModelOpen] = useState(false)
   const [isModelGovidOpen, setIsModelGovidOpen] = useState(false)
   const [isModelVehicleOpen, setIsModelVehicleOpen] = useState(false)
   const [isModelBioOpen, setIsModelBioOpen] = useState(false)
+  const [isModelChangePassOpen, setIsModelChangePassOpen] = useState(false)
 
 
 
@@ -39,9 +43,34 @@ export const ProfilePage = () => {
   const handleBioOpen = () => setIsModelBioOpen(true)
   const handleBioClose = () => setIsModelBioOpen(false)
 
+  const handleChangePassOpen = () => setIsModelChangePassOpen(true)
+  const handleChangePassClose = () => setIsModelChangePassOpen(false)
+
+  useEffect(() => {
+
+    const fetchUserAndVehicles = async () => {
+      if (!user?.user?.id) return;
+      try {
+        const res = await getalluservehicles(user.user.id)
+
+        if (res?.data?.success) {
+          dispatch(setUser(res.data.user));
+        }
+
+        if (res?.data?.success) {
+          dispatch(setVehicles(res.data.vehicles));
+        }
+      } catch (error) {
+        console.error("Error fetching user or vehicles:", error);
+      }
+    };
+
+    fetchUserAndVehicles();
+  }, [location]);
+
   const getSelectedId = async (id) => {
     try {
-      const response = await updateVehicles({ "user_id": user.user.user_id, "vehicle_id": id })
+      const response = await updateVehicles({ "user_id": user.user.id, "vehicle_id": id })
       if (response?.data?.success === true) {
         dispatch(setVehicles(response.data.vehicle))
       }
@@ -55,7 +84,7 @@ export const ProfilePage = () => {
     <main className="w-full bg-black min-h-[screen]">
       <Navigation />
       <div className="flex flex-col gap-5 items-center px-20 py-10 max-md:px-10 max-sm:px-5">
-        <ProfileHeader user_id={user?.user?.user_id} username={user?.user?.username || "Guest"} profileUrl={user?.user?.profileUrl} verified={user?.user?.verified || true} />
+        <ProfileHeader user_id={user?.user?.id} username={user?.user?.username || "Guest"} profile_url={user?.user?.profile_url} is_verified={user?.user?.is_verified || false} />
 
         <section className="p-8 w-full rounded-3xl bg-stone-950 max-w-[937px] relative">
           <div className="absolute top-4 right-4 group">
@@ -102,7 +131,12 @@ export const ProfilePage = () => {
               <div className="flex justify-between items-center w-full max-w-md mt-2">
                 <button
                   onClick={handleGovOpen}
-                  className="px-4 py-2 text-black bg-gray-50 rounded-full text-sm tracking-wider uppercase"
+                  disabled={user.user.gov_status === "verified"}
+                  className={`px-4 py-2 text-black rounded-full text-sm tracking-wider uppercase
+                    ${user.user.gov_status === "verified"
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-gray-50 hover:bg-gray-200"}
+                  `}
                 >
                   Change / Replace
                 </button>
@@ -137,11 +171,17 @@ export const ProfilePage = () => {
             />
           )}
           <div className="my-5 h-px bg-neutral-700" />
-          <VerificationItem
+          {!user?.user?.is_google&&<VerificationItem
+            onClick={handleChangePassOpen}
             icon={verificationIcon}
-            title="Phone - no"
-            subtitle={user?.user?.phone_no || "+91 9999999999"}
-          />
+            title="Change Password"
+          />}
+          {isModelChangePassOpen && (
+            <PasswordChangeModal
+              isOpen={isModelChangePassOpen}
+              onClose={handleChangePassClose}
+            />
+          )}
 
         </section>
 
@@ -149,17 +189,17 @@ export const ProfilePage = () => {
           <VerificationItem onClick={handleBioOpen} icon={verificationIcon} title="Add a mini bio" />
           {user?.user?.bio && (
             <div className="mt-3 ml-8 mr-8 group">
-            <div className="p-6  border border-blue-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 ease-in-out">
-              <div className="flex items-start space-x-3">
-                <div className="flex-1">
-                  <p className="text-sm text-white leading-relaxed whitespace-pre-line">
-                    {user.user.bio}
-                  </p>
+              <div className="p-6  border border-blue-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 ease-in-out">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-1">
+                    <p className="text-sm text-white leading-relaxed whitespace-pre-line">
+                      {user.user.bio}
+                    </p>
+                  </div>
                 </div>
+
               </div>
-              
             </div>
-          </div>
           )}
 
 

@@ -29,7 +29,7 @@ const VehicleDetailModal = ({ isOpen, onClose, user }) => {
     onSubmit: async (values, { setSubmitting, resetForm }) => {
       try {
 
-        const response = await registerVehicle({ "user": user.user_id, ...values })
+        const response = await registerVehicle({ "user": user.id, ...values })
         if (response?.data?.success === true) {
           toast.success("Vehicle Registered")
           dispatch(updateVehicles(response.data.data))

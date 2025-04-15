@@ -45,7 +45,7 @@ const ProfileGovUpload = ({ isOpen, onClose, user }) => {
 
             const data = await response.json();
             if (data) {
-                const res = await updateuser({ "user_id": user.user_id, "gov_url": data.secure_url });
+                const res = await updateuser({ "user_id": user.id, "gov_url": data.secure_url });
                 if (res.data?.success === true) {
                     dispatch(setUser(res?.data?.userDetails));
                     toast.success(res?.data?.message);

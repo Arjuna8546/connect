@@ -6,6 +6,8 @@ import LoginPage from '../pages/LoginPage'
 import SignupPage from '../pages/SignupPage'
 import LandingPage from '../pages/LandingPage'
 import ProfilePage from '../pages/ProfilePage'
+import ForgetPasswordPage from '../pages/ForgetPasswordPage'
+import ChangePassword from '../pages/ChangePassword'
 
 
 
@@ -17,6 +19,8 @@ function UserRoute() {
                 <Route path="/signup" element={<SignupPage/>}></Route>
                 <Route path="/" element={<LandingPage/>}></Route>
                 <Route path="/profile" element={<ProfilePage/>}></Route>
+                <Route path="/forgotpassword" element={<ForgetPasswordPage/>}></Route>
+                <Route path='/changepassword' element={<ChangePassword/>}></Route>
             </Routes>
 
         

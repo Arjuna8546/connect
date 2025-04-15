@@ -42,7 +42,7 @@ const ProfileDetailModal = ({ isOpen = true, onClose, user }) => {
                     return;
                   }
                 
-                const response = await updateuser({ "user_id":user.user_id,...changedValues})
+                const response = await updateuser({ "user_id":user.id,...changedValues})
     
                 if(response?.data?.success===true){
                     dispatch(setUser(response?.data?.userDetails))

@@ -51,6 +51,7 @@ class Users(AbstractBaseUser):
     phone_no = models.CharField(max_length=15,unique=True)
     password = models.CharField(max_length=128)
     is_verified = models.BooleanField(default=False)
+    is_google = models.BooleanField(default=False)
     status = models.CharField(max_length=10,choices=STATUS_CHOICE,default="active")
     role = models.CharField(max_length=10,choices=ROLE_CHOICES,default="user")
     created_at = models.DateTimeField(auto_now_add=True)

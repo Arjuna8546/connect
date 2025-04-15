@@ -12,7 +12,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
-        fields = ['id','username','email','date_of_birth','phone_no','password','gender','profile_url','gov_url','bio','is_verified','status','gov_status']
+        fields = ['id','username','email','date_of_birth','phone_no','password','gender','profile_url','gov_url','bio','is_verified','status','gov_status','is_google']
         read_only_fields = ['id']
         extra_kwargs = {
             'password' : {'write_only': True}

@@ -1,16 +1,14 @@
 
-import { useNavigate } from "react-router-dom";
-import UserCard from "./UserCard";
+import { useState } from "react";
+import VerifyUserCard from "./VerifyUserCard";
 
-const UserManagement = ({ users, search, setSearch }) => {
-    const nav = useNavigate()
-    const handleClick = ()=>{
-        nav('/admin/verifyrequest')
-    }
+
+const VerifyUserManagement = ({ users, search, setSearch, setUserId, setIsModalOpen }) => {
+
     return (
         <main className="p-10 ml-64 max-md:ml-0 max-md:p-5">
             <div className="flex justify-between items-center mb-8 gap-4 flex-wrap">
-                <h1 className="text-2xl font-bold text-stone-300">USER MANAGEMENT</h1>
+                <h1 className="text-2xl font-bold text-stone-300">VERIFY REQUESTS</h1>
                 <div className="flex gap-5">
                     <div className="flex items-center px-4 py-2 border-2 border-white rounded-full bg-transparent text-white max-sm:hidden">
                         <svg
@@ -35,17 +33,12 @@ const UserManagement = ({ users, search, setSearch }) => {
                             className="bg-transparent focus:outline-none text-white placeholder-white text-sm w-40"
                         />
                     </div>
-                    <button className="px-6 py-3 text-sm font-bold text-white uppercase bg-blue-500 rounded-[20px] tracking-[1.5px] max-sm:w-full max-sm:text-center"
-                        onClick={()=>handleClick()}
-                        >
-                        verify requests
-                    </button>
                 </div>
             </div>
 
             <div className="flex flex-col gap-5">
                 {users.length > 0 ? (
-                    users.map((user, index) => <UserCard key={index} {...user} />)
+                    users.map((user, index) => <VerifyUserCard key={user.id} {...user} setUserId={setUserId} setIsModalOpen={setIsModalOpen}/>)
                 ) : (
                     <div className="text-center text-stone-400 text-sm font-medium mt-10">
                         No users found.
@@ -57,4 +50,4 @@ const UserManagement = ({ users, search, setSearch }) => {
     );
 };
 
-export default UserManagement;
+export default VerifyUserManagement;
