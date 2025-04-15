@@ -40,7 +40,6 @@ const LoginForm = ({ handleSubmit }) => {
                 const res = await google(userData);
                 const userDetails = res.data.userDetails;
                 dispatch(setUser(userDetails));
-                console.log(userDetails)
     
                 const vehicles = await getVehicles(userDetails.id);
                 if (vehicles?.data?.success === true) {

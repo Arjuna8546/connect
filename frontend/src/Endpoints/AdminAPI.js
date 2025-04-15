@@ -22,3 +22,8 @@ export const adminverifiedusers = (page = 1, search = "") => adminaxios.get(`ver
 export const logout = () => adminaxios.post(
     'logout/'
 )
+
+export const blockuser = (formBody)=> adminaxios.patch(
+    'blockuser/',
+    formBody
+)

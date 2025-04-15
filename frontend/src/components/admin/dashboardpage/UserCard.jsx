@@ -1,4 +1,24 @@
-const UserCard = ({ username, profile_url, email, phone_no, status, hasNotification }) => {
+import { blockuser } from "../../../Endpoints/AdminAPI";
+
+const UserCard = ({ id, username, profile_url, email, phone_no, status, hasNotification, setUsers }) => {
+    const handleSubmit = async () => {
+        try {
+            const newStatus = status === "blocked" ? "active" : "blocked";
+            const res = await blockuser({ id, status: newStatus });
+
+            if (res?.data?.success) {
+                setUsers((prevUsers) =>
+                    prevUsers.map((user) =>
+                        user.id === id ? { ...user, status: newStatus } : user
+                    )
+                );
+            } else {
+                console.error("Failed to update user status:", res?.data?.message);
+            }
+        } catch (error) {
+            console.error("Error updating user status:", error);
+        }
+    };
     return (
         <article className="flex justify-between items-center p-6 rounded-3xl bg-stone-950 max-sm:flex-col max-sm:gap-5 max-sm:text-center">
             <div className="flex gap-8 items-center max-sm:flex-col max-sm:gap-3">
@@ -15,14 +35,16 @@ const UserCard = ({ username, profile_url, email, phone_no, status, hasNotificat
                 </div>
             </div>
             <button
+                onClick={handleSubmit}
                 className={`px-5 py-2.5 text-xs font-bold uppercase rounded-[30px] tracking-[2.1px] ${status === "active"
-                        ? "text-white bg-red-500 bg-opacity-10"
-                        : "text-white bg-green-400 bg-opacity-10"
+                    ? "text-white bg-red-500 bg-opacity-10"
+                    : "text-white bg-green-400 bg-opacity-10"
                     }`}
+
             >
                 {status === "active" ? "block" : "unBlock"}
             </button>
-        </article>      
+        </article>
     );
 };
 

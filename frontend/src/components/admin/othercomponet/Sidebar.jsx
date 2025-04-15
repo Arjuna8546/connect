@@ -26,6 +26,7 @@ import toast from "react-hot-toast";
         const response = await logout();
         if (response?.data?.success === true) {
           toast.success("Logged out successfully");
+          localStorage.removeItem("admin_id")
           nav("/admin/login"); 
         } else {
           toast.error("Logout failed. Try again.");

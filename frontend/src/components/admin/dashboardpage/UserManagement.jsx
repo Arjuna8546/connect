@@ -2,7 +2,7 @@
 import { useNavigate } from "react-router-dom";
 import UserCard from "./UserCard";
 
-const UserManagement = ({ users, search, setSearch }) => {
+const UserManagement = ({ users, search, setSearch , setUsers}) => {
     const nav = useNavigate()
     const handleClick = ()=>{
         nav('/admin/verifyrequest')
@@ -45,7 +45,7 @@ const UserManagement = ({ users, search, setSearch }) => {
 
             <div className="flex flex-col gap-5">
                 {users.length > 0 ? (
-                    users.map((user, index) => <UserCard key={index} {...user} />)
+                    users.map((user) => <UserCard key={user.id} {...user} setUsers={setUsers} />)
                 ) : (
                     <div className="text-center text-stone-400 text-sm font-medium mt-10">
                         No users found.

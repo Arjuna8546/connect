@@ -56,7 +56,7 @@ class AdminTokenObtainPairView(TokenObtainPairView):
                 "success": True,
                 "message": "Admin login successful",
                 "userDetails": {
-                    "user_id": user.id,
+                    "id": user.id,
                     "username": user.username,
                     "email": user.email,
                     "role": user.role
@@ -223,3 +223,42 @@ class VerifyUsers(APIView):
             })
         except Exception as e:
             return Response({"success":False,"message":f"An error occured: {str(e)}"},status=status.HTTP_400_BAD_REQUEST)
+        
+class BlockUser(APIView):
+    permission_classes= [IsAdmin]
+    def patch(self, request):
+        try:
+            user = Users.objects.get(id=request.data["id"])
+            serializer = UserRegistrationSerializer(user, data=request.data, partial=True)
+            if serializer.is_valid():
+                user = serializer.save()
+                return Response({
+                    "success": True,
+                    "message": f"User {user.status} successfully",
+                    "userDetails": {
+                        "id":user.id,
+                        "username": user.username,
+                        "email": user.email,
+                        "date_of_birth": user.date_of_birth,
+                        "phone_no": user.phone_no,
+                        "gender": user.gender,
+                        "profile_url": user.profile_url,
+                        "status": user.status,
+                        "is_verified": user.is_verified,
+                        "bio": user.bio,
+                        "is_google":user.is_google,
+                        "gov_url":user.gov_url,
+                        "gov_status":user.gov_status
+                    }
+                }, status=status.HTTP_200_OK)
+            return Response({
+                "success": False,
+                "errors": serializer.errors,
+                "message": "Validation failed"
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({
+                "success": False,
+                "message": f"An error occurred while updating profile: {str(e)}"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

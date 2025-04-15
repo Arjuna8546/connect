@@ -18,6 +18,7 @@ function AdminLoginPage() {
                 console.log(response.data)
                 dispatch(setAdmin(response.data.userDetails))
                 toast.success(`Hey admin ${response.data.userDetails.username} login successfull`)
+                localStorage.setItem("admin_id",response.data.userDetails.id)
                 nav("/admin/dashboard")
             }
         }

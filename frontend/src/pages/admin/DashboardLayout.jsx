@@ -48,7 +48,7 @@ const DashboardLayout = () => {
                 <div className="flex flex-1 relative pt-[104px]">
                     <Sidebar />
                     <div className="flex-1 overflow-auto">
-                        <UserManagement users={users} search={search} setSearch={setSearch} />
+                        <UserManagement users={users} search={search} setSearch={setSearch} setUsers={setUsers}/>
                     </div>
 
                 </div>

@@ -58,6 +58,7 @@ const NavigationMenu = () => {
           await logout();
           dispatch(deleteUser());
           dispatch(deleteVehicles());
+          localStorage.removeItem("user_id")
           nav("/login");
           toast.success("logged out successfully")
         },

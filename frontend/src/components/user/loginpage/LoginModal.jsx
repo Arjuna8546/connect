@@ -50,11 +50,10 @@ const LoginModal = ({ userData, onClose, onSubmit }) => {
                 <form
                     className="mt-5 max-md:mt-2.5 max-sm:mt-1.5 w-full flex flex-col items-center"
                     onSubmit={(e) => {
-                        e.preventDefault(); // Prevent default form submission behavior
-                        formik.handleSubmit(e); // Call Formik's submit handler
+                        e.preventDefault(); 
+                        formik.handleSubmit(e);
                     }}
                 >
-                    {/* Phone input */}
                     <div className="w-[393px] max-w-full">
                         <div className="relative">
                             <div className="flex relative justify-center items-center mt-4 h-12 rounded-2xl bg-stone-950 w-full max-md:mt-2.5 max-sm:mt-1.5">
@@ -81,7 +80,6 @@ const LoginModal = ({ userData, onClose, onSubmit }) => {
                             )}
                         </div>
 
-                        {/* DOB input */}
                         <div className="relative">
                             <div className="flex relative justify-center items-center mt-4 h-12 rounded-2xl bg-stone-950 w-full max-md:mt-2.5 max-sm:mt-1.5">
                                 <div
@@ -107,7 +105,6 @@ const LoginModal = ({ userData, onClose, onSubmit }) => {
                         </div>
                     </div>
 
-                    {/* Submit buttons */}
                     <div className="flex gap-4 justify-center mt-8 max-md:mt-5 max-sm:mt-2.5">
                         <button
                             type="button"
@@ -120,7 +117,7 @@ const LoginModal = ({ userData, onClose, onSubmit }) => {
                         </button>
 
                         <button
-                            type="submit" // Ensure this is submit, not button
+                            type="submit" 
                             className="flex relative justify-center items-center h-10 bg-white rounded-[30px] px-6 hover:bg-gray-100 transition-colors"
                         >
                             <div className="absolute h-10 bg-white shadow-2xl rounded-[48px] w-full" />

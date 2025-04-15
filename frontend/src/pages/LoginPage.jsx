@@ -22,6 +22,7 @@ const LoginPage = () => {
                 if (vehicles?.data?.success === true) {
                     dispatch(setVehicles(vehicles.data.vehicles))
                     toast.success(`${response.data.userDetails.username} login successfull`)
+                    localStorage.setItem("user_id",response.data.userDetails.id)
                     nav("/")
                 }
             }
