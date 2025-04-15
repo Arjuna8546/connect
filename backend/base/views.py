@@ -98,7 +98,7 @@ class CoustomTokenRefreshView(TokenRefreshView):
 
             if not "access" in response.data:
                 return Response(
-                    {"success":False,"message":"refresh token expired or invalid"},
+                    {"success":False,"message":"refresh token expired or invalid" },
                     status=status.HTTP_401_UNAUTHORIZED
                 )
             

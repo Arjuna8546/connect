@@ -45,6 +45,7 @@ const LoginForm = ({ handleSubmit }) => {
                 if (vehicles?.data?.success === true) {
                     dispatch(setVehicles(vehicles.data.vehicles));
                     toast.success(`${userDetails.username} login successful`);
+                    localStorage.setItem("user_id",userDetails.id)
                     nav("/");
                 }
             } else {
