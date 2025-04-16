@@ -29,7 +29,7 @@ const LoginPage = () => {
         }
         catch (error) {
             toast.error(
-                error?.response?.data?.error || "Something went wrong. Please try again."
+                error?.response?.data?.message || "Something went wrong. Please try again."
             );
         }
         finally {

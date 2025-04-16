@@ -8,6 +8,7 @@ function ForgetPasswordVerifyButton({ otp, userDetail }) {
   const nav = useNavigate()
   const handleSubmit = async (otp, userDetail) => {
     try{
+      
        const response = await forgetpasswordverifyotp({"otp":otp,"email":userDetail.email})
        if (response?.data?.success===true) {
   
@@ -17,7 +18,6 @@ function ForgetPasswordVerifyButton({ otp, userDetail }) {
        }
     }
     catch(error){
-      console.log(error)
       toast.error(error?.response?.data?.message)
     }
   }

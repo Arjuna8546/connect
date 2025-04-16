@@ -12,7 +12,7 @@ const ForgetPasswordPage = () => {
         try {
             const response = await forgetpassword(values)
              if (response?.data?.success === true) {
-                     toast.success(response.data.message)
+                    toast.success(response.data.message)
                     setIsModalOpen(true)
                  }
         }
