@@ -3,10 +3,13 @@ import React from "react";
 import { Navigation } from "../../components/user/othercomponent/Navigation";
 import Aurora from "../../animation/Aurora/Aurora";
 import PickupDropoffForm from "../../components/user/postride/PickupDropoffForm";
+import { useLocation } from "react-router-dom";
 
 
 
 const PickUpDropOff = () => {
+  const location = useLocation();
+  const postride = location.state?.postride;
   return (
     <>
       <link
@@ -23,7 +26,7 @@ const PickUpDropOff = () => {
           className="z-10"
         />
         
-        <PickupDropoffForm />
+        <PickupDropoffForm postride={postride}/>
       </main>
     </>
   );

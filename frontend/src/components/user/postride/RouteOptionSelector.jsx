@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 const RouteOptionSelector = ({ routes  }) => {
     const [selectedRoute, setSelectedRoute] = useState(0);
     const [finalRoute, setFinalRoute] = useState({})
+    const [distance,setDistance] = useState("")
 
     const nav = useNavigate()
 
@@ -13,6 +14,7 @@ const RouteOptionSelector = ({ routes  }) => {
         const selected = formattedRoutes[index];
         setFinalRoute({"route":selected.route,"coordinates":selected.coordinates});
         setSelectedRoute(index)
+        setDistance(selected.distance)
     }
 
     const handleSubmit = ()=>{

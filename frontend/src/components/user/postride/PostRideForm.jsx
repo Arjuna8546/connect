@@ -2,7 +2,8 @@ import React, { useCallback, useState } from "react";
 import FormInput from "./FormInput";
 import PassangerCount from "./PassangerCount";
 import debounce from "lodash.debounce";
-import { searchLocation } from "../../../Endpoints/MapBoxAPI";
+import { getCoordinatesFromPlaceName, searchLocation } from "../../../Endpoints/MapBoxAPI";
+import { useNavigate } from "react-router-dom";
 
 
 const PostRideForm = () => {
@@ -11,6 +12,8 @@ const PostRideForm = () => {
   const [destinationLoc,setDestinationLoc] = useState("")
   const [startSuggestions, setStartSuggestions] = useState([]);
   const [destSuggestions, setDestSuggestions] = useState([]);
+
+  const nav = useNavigate()
 
   const fetchSuggestions = async (input, setFn) => {
     if (input.length < 3) return;
@@ -33,8 +36,12 @@ const PostRideForm = () => {
     []
   );
 
-  const handleSubmit =() =>{
+  const handleSubmit =async() =>{
     console.log({"passanger_count":passengerCount,"start_loc":startLoc,"destination_loc":destinationLoc})
+    const start_loc_coordinates = await getCoordinatesFromPlaceName(startLoc)
+    const destination_loc_coordinates = await getCoordinatesFromPlaceName(destinationLoc)
+    nav('/pickupdropoff',{ state: { postride: {"passanger_count":passengerCount,"start_loc":startLoc,"destination_loc":destinationLoc,"start_loc_coordinates":start_loc_coordinates,"destination_loc_coordinates":destination_loc_coordinates} }  })
+    
   }
   return (
     <section className="absolute top-60 p-5 w-96 rounded-3xl bg-zinc-800 bg-opacity-50 backdrop-blur-md shadow-2xl border border-zinc-700 h-[344px] left-[114px] max-md:left-2/4 max-md:-translate-x-2/4 max-sm:left-2/4 max-sm:-translate-x-2/4 max-sm:w-[90%]"

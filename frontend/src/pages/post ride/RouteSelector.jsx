@@ -6,8 +6,8 @@ import RouteMap from "../../components/user/postride/RouteMap";
 
 
 const RouteSelector = () => {
-    const start = [76.2144, 10.5276]; // Thrissur
-    const end = [76.2673, 9.9312];    // Kochi
+    const start = [76.2876, 10.5283]; // Thrissur
+    const end = [76.3053, 10.0009];    // Kochi
 
     const [routeData,setRouteData] = useState([])
     

@@ -1,13 +1,16 @@
 import React, { useCallback, useState } from "react";
 import FormInput from "./FormInput";
 import debounce from "lodash.debounce";
-import { searchLocation } from "../../../Endpoints/MapBoxAPI";
+import { getCoordinatesFromPlaceName, searchLocation } from "../../../Endpoints/MapBoxAPI";
+import { useNavigate } from "react-router-dom";
 
-const PickupDropoffForm = () => {
+const PickupDropoffForm = ({postride}) => {
   const [pickLoc, setPickLoc] = useState("");
   const [dropLoc, setDropLoc] = useState("");
   const [pickSuggestions, setPickSuggestions] = useState([]);
   const [dropSuggestions, setDropSuggestions] = useState([]);
+
+  const nav = useNavigate()
 
   const fetchSuggestions = async (input, setFn) => {
     if (input.length < 3) return;
@@ -30,8 +33,11 @@ const PickupDropoffForm = () => {
     []
   );
 
-  const handleSubmit = () => {
-    console.log({ start_loc: pickLoc, destination_loc: dropLoc });
+  const handleSubmit = async() => {
+    console.log({ pick_loc: pickLoc, drop_loc: dropLoc });
+    const pick_loc_coordinates = await getCoordinatesFromPlaceName(pickLoc)
+      const drop_loc_coordinates = await getCoordinatesFromPlaceName(dropLoc)
+    nav('/locationselector',{ state: { postride: postride, pickupdropoff : { pick_loc: pickLoc, drop_loc: dropLoc ,pick_loc_coordinates:pick_loc_coordinates,drop_loc_coordinates:drop_loc_coordinates} } })
   };
 
   return (

@@ -1,25 +1,20 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-const MapComponent = ({ initialPlace }) => {
+const MapComponent = ({ initialPlace, onMapClick }) => {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
-  const markerRef = useRef(null); 
+  const markerRef = useRef(null);
 
   useEffect(() => {
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
-
 
     mapRef.current = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: 'mapbox://styles/mapbox/navigation-preview-day-v2',
       center: [initialPlace.longitude, initialPlace.latitude],
       zoom: 15,
-      maxBounds: [
-        [-180, -85],
-        [180, 85],
-      ],
     });
 
     mapRef.current.on('click', (e) => {
@@ -33,7 +28,7 @@ const MapComponent = ({ initialPlace }) => {
         .setLngLat([lng, lat])
         .addTo(mapRef.current);
 
-      console.log('Clicked Location:', lat, lng);
+      onMapClick(lat, lng); // send coordinates to parent
     });
 
     return () => mapRef.current.remove();
@@ -53,6 +48,3 @@ const MapComponent = ({ initialPlace }) => {
 };
 
 export default MapComponent;
-
-
-
