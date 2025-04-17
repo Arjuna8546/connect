@@ -12,6 +12,8 @@ import ProtectedRoute from '../protectedroutes/user/ProtectedRoute'
 import PostRide from '../pages/post ride/PostRide'
 import PickUpDropOff from '../pages/post ride/PickUpDropOff'
 import LocationSelector from '../pages/post ride/LocationSelector'
+import RouteSelector from '../pages/post ride/RouteSelector'
+import AddStopOver from '../pages/post ride/AddStopOver'
 
 
 
@@ -28,6 +30,8 @@ function UserRoute() {
                 <Route path='/postride' element={<PostRide/>}></Route>
                 <Route path='/pickupdropoff' element={<PickUpDropOff/>}></Route>
                 <Route path='/locationselector' element={<LocationSelector/>}></Route>
+                <Route path='/routeselector' element={<RouteSelector/>}></Route>
+                <Route path='/stopover' element={<AddStopOver/>}></Route>
 
             </Routes>
 
