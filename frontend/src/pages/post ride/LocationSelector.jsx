@@ -8,24 +8,26 @@ import { useLocation, useNavigate } from "react-router-dom";
 const LocationSelector = () => {
     const location = useLocation();
     const nav = useNavigate()
-    const { postride, pickupdropoff } = location.state;
+    const { postride } = location.state;
+    console.log("postride",postride)
+
     const [locationname, setLocationname] = useState("")
 
     const [step, setStep] = useState("pickup");
     const [pickupCoordinates, setPickupCoordinates] = useState(null);
     const [dropoffCoordinates, setDropoffCoordinates] = useState(null);
 
-    const latestMarker = useRef(null); // store latest clicked marker from map
+    const latestMarker = useRef(null);
 
-    const [pickLong, pickLang] = pickupdropoff.pick_loc_coordinates;
-    const [dropLong, dropLang] = pickupdropoff.drop_loc_coordinates;
+    const [pickLong, pickLang] = postride.start_loc_coordinates;
+    const [dropLong, dropLang] = postride.destination_loc_coordinates;
     useEffect(() => {
         if (step === "pickup") {
-            setLocationname(pickupdropoff.pick_loc);
+            setLocationname(postride.start_loc);
         } else {
-            setLocationname(pickupdropoff.drop_loc);
+            setLocationname(postride.destination_loc);
         }
-    }, [step, pickupdropoff]);
+    }, [step, postride]);
 
     const initialPlace = step === "pickup"
         ? { latitude: pickLang, longitude: pickLong }
@@ -42,7 +44,7 @@ const LocationSelector = () => {
                 setStep("dropoff");
             } else {
                 setDropoffCoordinates(latestMarker.current);
-                nav('/routeselector',{ state: { postride: postride, pickupdropoff : pickupdropoff,locationselected :{"Final_pickup": pickupCoordinates,"Final_dropoff":latestMarker.current} } })
+                nav('/routeselector',{ state: { postride: postride,locationselected :{"Final_pickup": pickupCoordinates,"Final_dropoff":latestMarker.current} } })
             }
         } else {
             alert("Please select a location on the map.");

@@ -1,18 +1,57 @@
 import React, { useState } from "react";
 import PriceControls from "./PriceControls";
 import StopOverPriceModal from "./StopOverPriceModal";
+import { useNavigate } from "react-router-dom";
 
-const PriceSettingCard = ({ distancePrice ,distances, state}) => {
+const PriceSettingCard = ({ distancePrice, distances, state }) => {
     const [price, setPrice] = useState(distancePrice);
     const [open, setOpen] = useState(false);
-    const [proportion,setProportion] = useState(1)
+    const [proportion, setProportion] = useState(1)
+
+    const nav = useNavigate()
+
     const increment = () => {
         setProportion((prev) => parseFloat((prev + 0.05).toFixed(2)));
-      };
-      
-      const decrement = () => {
+    };
+
+    const decrement = () => {
         setProportion((prev) => (prev > 0.5 ? parseFloat((prev - 0.05).toFixed(2)) : prev));
-      };
+    };
+
+    const handleClick = () => {
+        const start = state?.postride?.start_loc;
+        const end = state?.postride?.destination_loc;
+
+        const start_coordinates = state?.postride?.start_loc_coordinates;
+        const end_coordinates = state?.postride?.destination_loc_coordinates;
+
+        const priceBreakdown = [];
+
+        distances.forEach((stop) => {
+            const price = Math.ceil(stop.distance * 2 * proportion);
+            priceBreakdown.push({
+                start: start,
+                stop: stop.stop,
+                start_lat: start_coordinates[1],
+                start_lon: start_coordinates[0],
+                stop_lat: stop.lat,
+                stop_lon: stop.lon,
+                price: price,
+            });
+        });
+
+        priceBreakdown.push({
+            start: start,
+            stop: end,
+            start_lat: start_coordinates[1],
+            start_lon: start_coordinates[0],
+            stop_lat: end_coordinates[1],
+            stop_lon: end_coordinates[0],
+            price: Math.ceil(price * proportion),
+        });
+
+        nav('/publish', { state: { ...state, stopover_prices: priceBreakdown } })
+    }
 
     return (
         <div className="flex flex-col justify-center items-center rounded-3xl border border-solid backdrop-blur-[7.5px] bg-zinc-900 bg-opacity-50 border-zinc-800 h-auto py-10 px-6 max-w-[546px] w-full">
@@ -51,7 +90,7 @@ const PriceSettingCard = ({ distancePrice ,distances, state}) => {
                 onClose={() => setOpen(false)}
                 distances={distances}
                 startLocation={state?.postride?.start_loc}
-                desLocation ={state?.postride?.destination_loc}
+                desLocation={state?.postride?.destination_loc}
                 proportion={proportion}
                 setProportion={setProportion}
             />
@@ -60,29 +99,7 @@ const PriceSettingCard = ({ distancePrice ,distances, state}) => {
             </p>
 
             <button className="text-base font-bold text-black uppercase bg-white border border-solid shadow-2xl border-zinc-800 h-[62px] rounded-[30px] tracking-[3.15px] w-full max-w-[436px]"
-            onClick={() => {
-                const start = state?.postride?.start_loc;
-                const end = state?.postride?.destination_loc;
-
-                const priceBreakdown = [];
-            
-                distances.forEach((stop) => {
-                    const price = Math.ceil(stop.distance * 2 * proportion); 
-                    priceBreakdown.push({
-                        start: start,
-                        stop: stop.stop,
-                        price: price,
-                    });
-                });
-            
-                priceBreakdown.push({
-                    start: start,
-                    stop: end,
-                    price: Math.ceil(price  * proportion),
-                });
-            
-                console.log("Complete Price Breakdown:", priceBreakdown);
-            }}
+                onClick={() => handleClick()}
             >
                 continue
             </button>

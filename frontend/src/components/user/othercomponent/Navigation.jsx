@@ -2,34 +2,15 @@
 import Logo from "./Logo";
 import { DropdownIcon, LoginIcon } from "../homepage/Icons";
 import NavigationMenu from "../homepage/NavigationMenu";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export const Navigation = () => {
   const [showMenu, setShowMenu] = useState(false);
-  const menuRef = useRef(null);
-  const nav = useNavigate()
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setShowMenu(false);
-      }
-    }
-
-    if (showMenu) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showMenu]);
+  const nav = useNavigate();
 
   return (
-    <header className="flex justify-between items-center px-20 border border-gray-700 border-opacity-10 h-[104px] max-md:px-10 max-sm:px-5">
+    <header className="flex  bg-black justify-between items-center px-20 border border-gray-700 border-opacity-10 h-[104px] max-md:px-10 max-sm:px-5">
       <div className="flex gap-5 items-center">
         <div className="flex items-center">
           <Logo />
@@ -42,15 +23,15 @@ export const Navigation = () => {
           <DropdownIcon />
         </button>
 
-        <button className="px-10 py-4 text-xs font-bold tracking-widest text-white uppercase bg-[linear-gradient(57deg,#0A0A0A_0%,#3D3B3B_50%,#0A0A0A_100%)] rounded-[50px]"
-        onClick={()=>nav('/postride')}
+        <button
+          className="px-10 py-4 text-xs font-bold tracking-widest text-white uppercase bg-[linear-gradient(57deg,#0A0A0A_0%,#3D3B3B_50%,#0A0A0A_100%)] rounded-[50px]"
+          onClick={() => nav("/postride")}
         >
           post a ride
         </button>
 
         <button
           onClick={() => setShowMenu((prev) => !prev)}
-          
           className="p-5 cursor-pointer max-md:hidden"
         >
           <LoginIcon />
@@ -70,14 +51,10 @@ export const Navigation = () => {
       </button>
 
       {showMenu && (
-        <div
-          ref={menuRef}
-          className="absolute top-[104px] left-0 md:left-auto md:right-0 w-full md:w-auto z-50"
-        >
+        <div className="absolute top-[104px] left-0 md:left-auto md:right-0 w-full md:w-auto z-50">
           <NavigationMenu />
         </div>
       )}
     </header>
   );
 };
-

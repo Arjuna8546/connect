@@ -1,13 +1,11 @@
 import React, { useCallback, useState } from "react";
 import FormInput from "./FormInput";
-import PassangerCount from "./PassangerCount";
 import debounce from "lodash.debounce";
 import { getCoordinatesFromPlaceName, searchLocation } from "../../../Endpoints/MapBoxAPI";
 import { useNavigate } from "react-router-dom";
 
 
 const PostRideForm = () => {
-  const [passengerCount,setPassengerCount] = useState(1)
   const [startLoc,setStartLoc] = useState("")
   const [destinationLoc,setDestinationLoc] = useState("")
   const [startSuggestions, setStartSuggestions] = useState([]);
@@ -39,38 +37,46 @@ const PostRideForm = () => {
   const handleSubmit =async() =>{
     const start_loc_coordinates = await getCoordinatesFromPlaceName(startLoc)
     const destination_loc_coordinates = await getCoordinatesFromPlaceName(destinationLoc)
-    nav('/pickupdropoff',{ state: { postride: {"passanger_count":passengerCount,"start_loc":startLoc,"destination_loc":destinationLoc,"start_loc_coordinates":start_loc_coordinates,"destination_loc_coordinates":destination_loc_coordinates} }  })
+    nav('/locationselector',{ state: { postride: {"start_loc":startLoc,"destination_loc":destinationLoc,"start_loc_coordinates":start_loc_coordinates,"destination_loc_coordinates":destination_loc_coordinates} }  })
     
   }
   return (
-    <section className="absolute top-60 p-5 w-96 rounded-3xl bg-zinc-800 bg-opacity-50 backdrop-blur-md shadow-2xl border border-zinc-700 h-[344px] left-[114px] max-md:left-2/4 max-md:-translate-x-2/4 max-sm:left-2/4 max-sm:-translate-x-2/4 max-sm:w-[90%]"
->
-      <h2 className="mb-5 text-xl font-bold text-stone-300">POST RIDE</h2>
-      <div className="flex flex-col gap-5">
+    <section
+    className=" absolute top-60 left-1/2 -translate-x-1/2 p-5 w-[384px] max-w-[90%] rounded-3xl bg-zinc-800 bg-opacity-50 backdrop-blur-md shadow-2xl border border-zinc-700 h-auto"
+  >
+    <h2 className="mb-5 text-xl font-bold text-stone-300 text-center">POST RIDE</h2>
+  
+    <div className="flex flex-col gap-5">
       <FormInput
-          label="starting from..."
-          showArrow={true}
-          value={startLoc}
-          setLoc={setStartLoc}
-          onChange={(e) => debouncedStartFetch(e.target.value)}
-          suggestions={startSuggestions}
-          setSuggestions ={()=>setStartSuggestions()}
-        />
-        <FormInput
-          label="destination..."
-          showArrow={true}
-          value={destinationLoc}
-          setLoc={setDestinationLoc}
-          onChange={(e) => debouncedDestFetch(e.target.value)}
-          suggestions={destSuggestions}
-          setSuggestions ={()=>setDestSuggestions()}
-        />
-        <PassangerCount value={passengerCount} onChange={(e) => setPassengerCount(e.target.value)} />
-        <button  onClick={handleSubmit} className="h-10 text-base font-bold leading-10 text-center text-black uppercase bg-white rounded-[30px] tracking-[3.15px] w-[328px]">
-          publish ride
-        </button>
-      </div>
-    </section>
+        label="starting from..."
+        showArrow={true}
+        value={startLoc}
+        setLoc={setStartLoc}
+        onChange={(e) => debouncedStartFetch(e.target.value)}
+        suggestions={startSuggestions}
+        setSuggestions={() => setStartSuggestions()}
+      />
+  
+      <FormInput
+        label="destination..."
+        showArrow={true}
+        value={destinationLoc}
+        setLoc={setDestinationLoc}
+        onChange={(e) => debouncedDestFetch(e.target.value)}
+        suggestions={destSuggestions}
+        setSuggestions={() => setDestSuggestions()}
+      />
+
+  
+      <button
+        onClick={handleSubmit}
+        className="h-10 text-base font-bold leading-10 text-center text-black uppercase bg-white rounded-[30px] tracking-[3.15px] w-full"
+      >
+        publish ride
+      </button>
+    </div>
+  </section>
+  
   );
 };
 

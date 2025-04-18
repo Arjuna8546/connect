@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 const FormInput = ({ label, showArrow = false, setLoc, value, suggestions = [], onChange, setSuggestions }) => {
   return (
-    <div className="relative w-[329px]">
+    <div className="relative w-full max-w-sm"> {/* Responsive width with a max */}
       <div className="flex justify-between items-center px-4 py-0 h-12 rounded-2xl bg-stone-950">
         <input
           type="text"
@@ -34,43 +34,46 @@ const FormInput = ({ label, showArrow = false, setLoc, value, suggestions = [], 
         )}
       </div>
 
-      {suggestions.length > 0 && (
-        <ul className="absolute top-full mt-1 z-20 min-w-[280px] max-h-[200px] overflow-y-auto bg-zinc-800 rounded-xl text-white text-xs font-medium shadow-2xl backdrop-blur-md border border-zinc-700 animate-fade-in">
-          {suggestions.map((item, idx) => (
-            <li
-              key={idx}
-              className="px-4 py-2 flex items-center gap-2 hover:bg-zinc-700 cursor-pointer transition-all duration-150 ease-in-out"
-              onClick={() => {
-                setLoc(item);
-                setSuggestions();
-              }}
+
+      {
+    suggestions.length > 0 && (
+      <ul className="absolute top-full mt-1 z-20 min-w-[280px] max-h-[200px] overflow-y-auto bg-zinc-800 rounded-xl text-white text-xs font-medium shadow-2xl backdrop-blur-md border border-zinc-700 animate-fade-in">
+        {suggestions.map((item, idx) => (
+          <li
+            key={idx}
+            className="px-4 py-2 flex items-center gap-2 hover:bg-zinc-700 cursor-pointer transition-all duration-150 ease-in-out"
+            onClick={() => {
+              setLoc(item);
+              setSuggestions();
+            }}
+          >
+            <svg
+              className="text-green-400 w-4 h-4 shrink-0"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              <svg
-                className="text-green-400 w-4 h-4 shrink-0"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17.657 16.657L13.414 12.414A4 4 0 1012 13.414l4.243 4.243a1 1 0 001.414-1.414z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17.657 16.657L13.414 12.414A4 4 0 1012 13.414l4.243 4.243a1 1 0 001.414-1.414z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+    </div >
   );
 };
 

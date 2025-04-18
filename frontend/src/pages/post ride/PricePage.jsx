@@ -10,7 +10,6 @@ import { getRouteDistanceFromStartToEnd } from "../../Endpoints/MapBoxAPI";
 const PricePage = () => {
 
   const location = useLocation()
-  console.log(location.state)
   const states = location?.state
   const [stopOverDistance,setStopOverDistance] = useState([])
 
@@ -36,7 +35,7 @@ const PricePage = () => {
         };
 
         const distance = await getRouteDistanceFromStartToEnd(startCoord, endCoord, routeCoordinates);
-        distances.push({ stop: stop.name, distance });
+        distances.push({ stop: stop.name,lat:stop.lat,lon:stop.lon, distance  });
       }
 
       setStopOverDistance(distances)
