@@ -76,32 +76,43 @@ export const getPlacesAlongRoute = async (coordinates) => {
 };
 
 //OSR
+
 export const getRouteDistanceFromStartToEnd = async (startCoord, endCoord, routeCoordinates) => {
-    try {
-      const accessToken = import.meta.env.VITE_ORS_TOKEN;
+  try {
+    const access_Token = import.meta.env.VITE_ORS_TOKEN;
 
-      const startIndex = findClosestPoint(startCoord, routeCoordinates);
-      const endIndex = findClosestPoint(endCoord, routeCoordinates);
+    const startIndex = findClosestPoint(startCoord, routeCoordinates);
+    const endIndex = findClosestPoint(endCoord, routeCoordinates);
 
-      const [startLng, startLat] = routeCoordinates[startIndex];
-      const [endLng, endLat] = routeCoordinates[endIndex];
-  
-      const waypoints = `${startLng},${startLat}|${endLng},${endLat}`;
-  
-      const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${accessToken}&start=${startLng},${startLat}&end=${endLng},${endLat}`;
-  
-      const response = await axios.get(url);
-  
-      const distanceInMeters = response.data.routes[0].summary.distance;
-      const distanceInKm = distanceInMeters / 1000;
-  
-      console.log(`Route distance from start to end: ${distanceInKm.toFixed(2)} km`);
-      return distanceInKm;
-    } catch (error) {
-      console.error("Error fetching route distance:", error);
-      return null;
-    }
-  };
+    const [startLng, startLat] = routeCoordinates[startIndex];
+    const [endLng, endLat] = routeCoordinates[endIndex];
+
+    const url = "https://api.openrouteservice.org/v2/directions/driving-car";
+
+    const body = {
+      coordinates: [
+        [startLng, startLat],
+        [endLng, endLat]
+      ]
+    };
+
+    const headers = {
+      Authorization: access_Token,
+      "Content-Type": "application/json",
+    };
+
+    const response = await axios.post(url, body, { headers });
+
+    const distanceInMeters = response.data.routes[0].summary.distance;
+    const distanceInKm = distanceInMeters / 1000;
+
+    return distanceInKm;
+  } catch (error) {
+    console.error("❌ Error fetching route distance:", error?.response?.data || error.message);
+    return null;
+  }
+};
+
   
 
   const findClosestPoint = (coord, routeCoordinates) => {

@@ -9,6 +9,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { StaticDatePicker } from "@mui/x-date-pickers/StaticDatePicker";
 import { StaticTimePicker } from "@mui/x-date-pickers/StaticTimePicker";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const darkTheme = createTheme({
     palette: {
@@ -17,6 +18,11 @@ const darkTheme = createTheme({
 });
 
 const DateTime = () => {
+
+    const location = useLocation()
+    const states = location?.state
+    const nav = useNavigate()
+
     const [selectedDate, setSelectedDate] = useState(dayjs());
     const [selectedTime, setSelectedTime] = useState(dayjs());
     const [combinedOutput, setCombinedOutput] = useState("");
@@ -26,7 +32,7 @@ const DateTime = () => {
         const time = selectedTime?.format("HH:mm");
         const combined = `${date} ${time}`;
         setCombinedOutput(combined);
-        console.log("Submitted Date & Time:", combined);
+        nav('/count',{state:{...states,date_time:{date:date,time:time}}})
     };
 
     return (
@@ -36,7 +42,7 @@ const DateTime = () => {
                 <Navigation />
 
                 <div className="flex flex-col md:flex-row gap-6 justify-center items-stretch mt-6 w-full max-w-[1440px] px-4 md:px-6 lg:px-8 pb-10">
-                    {/* Date Picker */}
+
                     <div className="w-full max-w-sm bg-[#121212] p-4 rounded-2xl shadow-lg border  flex flex-col justify-between min-h-[520px]">
                         <h2 className="text-lg font-bold mb-4 text-white text-center">Select Date</h2>
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -49,7 +55,6 @@ const DateTime = () => {
                         </LocalizationProvider>
                     </div>
 
-                    {/* Time Picker */}
                     <div className="w-full max-w-sm bg-[#121212] p-4 rounded-2xl shadow-lg border min-h-[520px] flex flex-col">
                         <h2 className="text-lg font-bold mb-4 text-white text-center">Select Time</h2>
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -66,7 +71,6 @@ const DateTime = () => {
 
                 </div>
 
-                {/* Submit Button */}
                 <div className="flex justify-center items-center pb-8">
                     <Button
                         onClick={handleSubmit}

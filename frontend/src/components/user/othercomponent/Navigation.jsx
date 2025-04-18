@@ -3,12 +3,13 @@ import Logo from "./Logo";
 import { DropdownIcon, LoginIcon } from "../homepage/Icons";
 import NavigationMenu from "../homepage/NavigationMenu";
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const Navigation = () => {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
+  const nav = useNavigate()
 
-  // Close menu on outside click
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -41,7 +42,9 @@ export const Navigation = () => {
           <DropdownIcon />
         </button>
 
-        <button className="px-10 py-4 text-xs font-bold tracking-widest text-white uppercase bg-[linear-gradient(57deg,#0A0A0A_0%,#3D3B3B_50%,#0A0A0A_100%)] rounded-[50px]">
+        <button className="px-10 py-4 text-xs font-bold tracking-widest text-white uppercase bg-[linear-gradient(57deg,#0A0A0A_0%,#3D3B3B_50%,#0A0A0A_100%)] rounded-[50px]"
+        onClick={()=>nav('/postride')}
+        >
           post a ride
         </button>
 

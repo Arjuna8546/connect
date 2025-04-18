@@ -1,27 +1,49 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Navigation } from "../../components/user/othercomponent/Navigation";
 import PriceSettingCard from "../../components/user/postride/PriceSettingCard";
+import { useLocation } from "react-router-dom";
+import { getRouteDistanceFromStartToEnd } from "../../Endpoints/MapBoxAPI";
+
 
 
 const PricePage = () => {
-    const distance = "70 km"
-    const distanceInt = parseInt(distance);
-    const result = distanceInt * 5;
-    const stopovers = [
-        {
-          name: "Ashtamichira (അഷ്ടമിച്ചിറ)",
-          lat: 10.2714696,
-          lon: 76.278656
-        },
-        {
-          name: "Kodakara (കൊടകര)",
-          lat: 10.3717111,
-          lon: 76.3042007
-        }
-      ];
-      
-    
+
+  const location = useLocation()
+  console.log(location.state)
+  const states = location?.state
+  const [stopOverDistance,setStopOverDistance] = useState([])
+
+  const distance = states?.route_selected?.route_distance
+  const distanceInt = parseInt(distance);
+  const result = distanceInt * 2;
+  useEffect(() => {
+    const fetchStopoverDistances = async () => {
+      const startCoord = {
+        lat: states?.postride?.start_loc_coordinates[1],
+        lon: states?.postride?.start_loc_coordinates[0],
+      };
+
+      const routeCoordinates = states?.route_selected?.route_coordinate;
+      const stopovers = states?.stopever?.Final_stopovers || [];
+
+      const distances = [];
+
+      for (let stop of stopovers) {
+        const endCoord = {
+          lat: stop.lat,
+          lon: stop.lon,
+        };
+
+        const distance = await getRouteDistanceFromStartToEnd(startCoord, endCoord, routeCoordinates);
+        distances.push({ stop: stop.name, distance });
+      }
+
+      setStopOverDistance(distances)
+    };
+
+    fetchStopoverDistances();
+  }, []);
 
 
   return (
@@ -33,7 +55,7 @@ const PricePage = () => {
       <main className="flex flex-col justify-center mx-auto w-full max-w-none h-screen bg-black max-md:max-w-[991px] max-sm:max-w-screen-sm">
         <Navigation />
         <section className="flex justify-center items-center w-full h-[calc(100vh_-_104px)] max-sm:px-5 max-sm:py-0">
-          <PriceSettingCard distancePrice={result}/>
+          <PriceSettingCard distancePrice={result} distances={stopOverDistance} state={states}/>
         </section>
       </main>
     </>

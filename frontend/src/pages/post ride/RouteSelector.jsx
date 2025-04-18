@@ -3,11 +3,14 @@ import React, { useState } from "react";
 import { Navigation } from "../../components/user/othercomponent/Navigation";
 import RouteOptionSelector from "../../components/user/postride/RouteOptionSelector";
 import RouteMap from "../../components/user/postride/RouteMap";
+import { useLocation } from "react-router-dom";
 
 
 const RouteSelector = () => {
-    const start = [76.2876, 10.5283]; // Thrissur
-    const end = [76.3053, 10.0009];    // Kochi
+    const location = useLocation()
+    const states = location?.state
+    const start = states.postride.start_loc_coordinates; 
+    const end = states.postride.destination_loc_coordinates;   
 
     const [routeData,setRouteData] = useState([])
     
@@ -24,7 +27,7 @@ const RouteSelector = () => {
                 <div className="flex flex-col md:flex-row gap-6 justify-center items-center mt-6 w-full max-w-[1440px] px-4 md:px-6 lg:px-8">
 
                     <div className="flex flex-col items-center justify-center w-full max-w-lg md:w-1/2">
-                        <RouteOptionSelector routes={routeData}/>
+                        <RouteOptionSelector routes={routeData} state={states}/>
                     </div>
 
                     <div className="w-full md:w-1/2">

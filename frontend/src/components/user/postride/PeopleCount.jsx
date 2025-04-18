@@ -1,10 +1,12 @@
 "use client";
 import React, { useState } from "react";
 import CounterControls from "./CounterControls";
+import { useNavigate } from "react-router-dom";
 
-const PeopleCount = () => {
+const PeopleCount = ({state}) => {
   const [count, setCount] = useState(3);
   const [isComfortChecked, setIsComfortChecked] = useState(false);
+  const nav = useNavigate()
 
   const handleIncrement = () => {
     setCount((prev) => Math.min(prev + 1, 4));
@@ -20,7 +22,7 @@ const PeopleCount = () => {
 
   const handleSubmit = () => {
     const finalPassengerCount = isComfortChecked ? 2 : count;
-    console.log("Final Passenger Count:", finalPassengerCount);
+    nav('/price',{state:{...state,passanger_count:finalPassengerCount}})
   };
 
   return (

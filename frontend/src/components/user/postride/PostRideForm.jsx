@@ -37,7 +37,6 @@ const PostRideForm = () => {
   );
 
   const handleSubmit =async() =>{
-    console.log({"passanger_count":passengerCount,"start_loc":startLoc,"destination_loc":destinationLoc})
     const start_loc_coordinates = await getCoordinatesFromPlaceName(startLoc)
     const destination_loc_coordinates = await getCoordinatesFromPlaceName(destinationLoc)
     nav('/pickupdropoff',{ state: { postride: {"passanger_count":passengerCount,"start_loc":startLoc,"destination_loc":destinationLoc,"start_loc_coordinates":start_loc_coordinates,"destination_loc_coordinates":destination_loc_coordinates} }  })

@@ -3,22 +3,20 @@ import React, { useEffect, useState } from "react";
 import RouteOption from "./RouteOption";
 import { useNavigate } from "react-router-dom";
 
-const RouteOptionSelector = ({ routes  }) => {
+const RouteOptionSelector = ({ routes ,state }) => {
     const [selectedRoute, setSelectedRoute] = useState(0);
     const [finalRoute, setFinalRoute] = useState({})
-    const [distance,setDistance] = useState("")
 
     const nav = useNavigate()
 
     const handleClick = (index) => {
         const selected = formattedRoutes[index];
-        setFinalRoute({"route":selected.route,"coordinates":selected.coordinates});
+        setFinalRoute({"route":selected.route,"coordinates":selected.coordinates,"distance":selected.distance});
         setSelectedRoute(index)
-        setDistance(selected.distance)
     }
 
     const handleSubmit = ()=>{
-        nav('/stopover',{ state: { coordinates: finalRoute.coordinates } })
+        nav('/stopover',{ state: { ...state,route_selected: {route_coordinate:finalRoute.coordinates,route_distance:finalRoute.distance} } })
     }
 
     const formattedRoutes = routes.map((route) => {
@@ -33,7 +31,7 @@ const RouteOptionSelector = ({ routes  }) => {
     useEffect(() => {
         const selected = formattedRoutes[0];
         if (selected){
-            setFinalRoute({ "route": selected?.route, "coordinates": selected.coordinates });
+            setFinalRoute({ "route": selected?.route, "coordinates": selected.coordinates,"distance":selected.distance });
         }
       }, [routes]);
 

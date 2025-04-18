@@ -8,7 +8,8 @@ import { useLocation } from "react-router-dom";
 
 const AddStopOver = () => {
     const location = useLocation();
-    const coordinates = location.state?.coordinates;
+    const states = location?.state
+    const coordinates = states?.route_selected?.route_coordinate;
   return (
     <>
       <link
@@ -17,7 +18,7 @@ const AddStopOver = () => {
       />
       <main className="overflow-hidden relative mx-auto w-full max-w-none h-screen bg-black max-md:max-w-[991px] max-sm:max-w-screen-sm">
       <Navigation />
-        <StopOverForm coordinates={coordinates}/>
+        <StopOverForm coordinates={coordinates} state={states}/>
       </main>
     </>
   );

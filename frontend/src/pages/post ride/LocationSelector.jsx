@@ -42,8 +42,6 @@ const LocationSelector = () => {
                 setStep("dropoff");
             } else {
                 setDropoffCoordinates(latestMarker.current);
-                console.log(" Final Pickup:", pickupCoordinates);
-                console.log(" Final Dropoff:", latestMarker.current);
                 nav('/routeselector',{ state: { postride: postride, pickupdropoff : pickupdropoff,locationselected :{"Final_pickup": pickupCoordinates,"Final_dropoff":latestMarker.current} } })
             }
         } else {

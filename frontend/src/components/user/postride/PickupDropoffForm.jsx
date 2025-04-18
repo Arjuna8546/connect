@@ -34,7 +34,6 @@ const PickupDropoffForm = ({postride}) => {
   );
 
   const handleSubmit = async() => {
-    console.log({ pick_loc: pickLoc, drop_loc: dropLoc });
     const pick_loc_coordinates = await getCoordinatesFromPlaceName(pickLoc)
       const drop_loc_coordinates = await getCoordinatesFromPlaceName(dropLoc)
     nav('/locationselector',{ state: { postride: postride, pickupdropoff : { pick_loc: pickLoc, drop_loc: dropLoc ,pick_loc_coordinates:pick_loc_coordinates,drop_loc_coordinates:drop_loc_coordinates} } })

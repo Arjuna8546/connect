@@ -2,10 +2,13 @@
 import React from "react";
 import { Navigation } from "../../components/user/othercomponent/Navigation";
 import PeopleCount from "../../components/user/postride/PeopleCount";
+import { useLocation } from "react-router-dom";
 
 
 
 const PassangerCount = () => {
+  const location = useLocation()
+  const states = location?.state
 
   return (
     <>
@@ -16,7 +19,7 @@ const PassangerCount = () => {
       <main className="min-h-screen bg-black flex flex-col">
         <Navigation />
         <div className="flex flex-1 justify-center items-center px-4">
-          <PeopleCount />
+          <PeopleCount state={states}/>
         </div>
       </main>
 

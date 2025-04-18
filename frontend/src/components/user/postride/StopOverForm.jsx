@@ -2,12 +2,14 @@
 import React, { useEffect, useState } from "react";
 import CitySelector from "./CitySelector";
 import { getPlacesAlongRoute } from "../../../Endpoints/MapBoxAPI";
+import { useNavigate } from "react-router-dom";
 
-const StopOverForm = ({ coordinates }) => {
+const StopOverForm = ({ coordinates ,state }) => {
     const [cities, setCities] = useState([]);
     const [placesData, setPlacesData] = useState([]);
     const [stopovers, setStopovers] = useState([]);
     const [selectedCity, setSelectedCity] = useState("");
+    const nav = useNavigate()
 
     useEffect(() => {
         const fetchPlaces = async () => {
@@ -94,7 +96,7 @@ const StopOverForm = ({ coordinates }) => {
                 className="mt-5 text-base font-bold text-black uppercase bg-white shadow-2xl 
                 h-[62px] rounded-[30px] tracking-[3.15px] w-full max-w-[436px]"
                 onClick={() => {
-                    console.log("Final Stopovers:", stopovers);
+                    nav('/datetime',{state:{...state,stopever:{"Final_stopovers": stopovers}}})
                 }}
             >
                 Continue
