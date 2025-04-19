@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     "corsheaders",
 
     'base',
-    'Admin'
+    'Admin',
+    'rides',
 ]
 
 REST_FRAMEWORK = {
@@ -109,12 +110,17 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'connect_db1',
+        'USER': 'postgres',
+        'PASSWORD': 'arjuna@8546',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
 REDIS_HOST = os.getenv("REDIS_HOST")
+
 REDIS_PORT = os.getenv("REDIS_PORT")
 REDIS_DB = os.getenv("REDIS_DB")
 

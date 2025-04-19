@@ -17,6 +17,7 @@ import DateTime from '../pages/post ride/DateTime'
 import PassangerCount from '../pages/post ride/PassangerCount'
 import PricePage from '../pages/post ride/PricePage'
 import PublishRidePage from '../pages/post ride/PublishRidePage'
+import SelectVehicle from '../pages/post ride/SelectVehicle'
 
 
 
@@ -38,6 +39,7 @@ function UserRoute() {
                 <Route path='/count' element={<PassangerCount/>}></Route>
                 <Route path='/price' element={<PricePage/>}></Route>
                 <Route path='/publish' element={<PublishRidePage/>}></Route>
+                <Route path='/vehicles' element={<SelectVehicle/>}></Route>
 
             </Routes>
 

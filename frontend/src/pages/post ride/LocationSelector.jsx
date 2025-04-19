@@ -9,7 +9,6 @@ const LocationSelector = () => {
     const location = useLocation();
     const nav = useNavigate()
     const { postride } = location.state;
-    console.log("postride",postride)
 
     const [locationname, setLocationname] = useState("")
 

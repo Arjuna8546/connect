@@ -50,7 +50,7 @@ const PriceSettingCard = ({ distancePrice, distances, state }) => {
             price: Math.ceil(price * proportion),
         });
 
-        nav('/publish', { state: { ...state, stopover_prices: priceBreakdown } })
+        nav('/vehicles', { state: { ...state, stopover_prices: priceBreakdown } })
     }
 
     return (
