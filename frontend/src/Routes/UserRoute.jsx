@@ -18,6 +18,8 @@ import PassangerCount from '../pages/post ride/PassangerCount'
 import PricePage from '../pages/post ride/PricePage'
 import PublishRidePage from '../pages/post ride/PublishRidePage'
 import SelectVehicle from '../pages/post ride/SelectVehicle'
+import YourRidePage from '../pages/your ride/YourRidePage'
+import RideSearchPage from '../pages/search ride/SearchRidePage'
 
 
 
@@ -31,15 +33,19 @@ function UserRoute() {
                 <Route path="/profile" element={<ProtectedRoute><ProfilePage/></ProtectedRoute>}></Route>
                 <Route path="/forgotpassword" element={<ForgetPasswordPage/>}></Route>
                 <Route path='/changepassword' element={<ChangePassword/>}></Route>
-                <Route path='/postride' element={<PostRide/>}></Route>
-                <Route path='/locationselector' element={<LocationSelector/>}></Route>
-                <Route path='/routeselector' element={<RouteSelector/>}></Route>
-                <Route path='/stopover' element={<AddStopOver/>}></Route>
-                <Route path='/datetime' element={<DateTime/>}></Route>
-                <Route path='/count' element={<PassangerCount/>}></Route>
-                <Route path='/price' element={<PricePage/>}></Route>
-                <Route path='/publish' element={<PublishRidePage/>}></Route>
-                <Route path='/vehicles' element={<SelectVehicle/>}></Route>
+                <Route path='/postride' element={<ProtectedRoute><PostRide/></ProtectedRoute>}></Route>
+                <Route path='/postride/locationselector' element={<ProtectedRoute><LocationSelector/></ProtectedRoute>}></Route>
+                <Route path='/postride/routeselector' element={<ProtectedRoute><RouteSelector/></ProtectedRoute>}></Route>
+                <Route path='/postride/stopover' element={<ProtectedRoute><AddStopOver/></ProtectedRoute>}></Route>
+                <Route path='/postride/datetime' element={<ProtectedRoute><DateTime/></ProtectedRoute>}></Route>
+                <Route path='/postride/count' element={<ProtectedRoute><PassangerCount/></ProtectedRoute>}></Route>
+                <Route path='/postride/price' element={<ProtectedRoute><PricePage/></ProtectedRoute>}></Route>
+                <Route path='/postride/publish' element={<ProtectedRoute><PublishRidePage/></ProtectedRoute>}></Route>
+                <Route path='/postride/vehicles' element={<ProtectedRoute><SelectVehicle/></ProtectedRoute>}></Route>
+
+                <Route path='/yourrides' element={<ProtectedRoute><YourRidePage/></ProtectedRoute>}></Route>
+
+                <Route path='/search' element={<ProtectedRoute><RideSearchPage/></ProtectedRoute>}></Route>
 
             </Routes>
 

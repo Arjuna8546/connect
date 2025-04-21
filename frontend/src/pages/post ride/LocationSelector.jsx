@@ -43,7 +43,7 @@ const LocationSelector = () => {
                 setStep("dropoff");
             } else {
                 setDropoffCoordinates(latestMarker.current);
-                nav('/routeselector',{ state: { postride: postride,locationselected :{"Final_pickup": pickupCoordinates,"Final_dropoff":latestMarker.current} } })
+                nav('/postride/routeselector',{ state: { postride: postride,locationselected :{"Final_pickup": pickupCoordinates,"Final_dropoff":latestMarker.current} } })
             }
         } else {
             alert("Please select a location on the map.");

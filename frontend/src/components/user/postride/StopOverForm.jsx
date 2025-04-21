@@ -96,7 +96,7 @@ const StopOverForm = ({ coordinates ,state }) => {
                 className="mt-5 text-base font-bold text-black uppercase bg-white shadow-2xl 
                 h-[62px] rounded-[30px] tracking-[3.15px] w-full max-w-[436px]"
                 onClick={() => {
-                    nav('/datetime',{state:{...state,stopever:{"Final_stopovers": stopovers}}})
+                    nav('/postride/datetime',{state:{...state,stopever:{"Final_stopovers": stopovers}}})
                 }}
             >
                 Continue

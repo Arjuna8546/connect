@@ -11,12 +11,12 @@ const RouteOptionSelector = ({ routes ,state }) => {
 
     const handleClick = (index) => {
         const selected = formattedRoutes[index];
-        setFinalRoute({"route":selected.route,"coordinates":selected.coordinates,"distance":selected.distance});
+        setFinalRoute({"route":selected.route,"coordinates":selected.coordinates,"distance":selected.distance ,"duration":selected.duration});
         setSelectedRoute(index)
     }
 
     const handleSubmit = ()=>{
-        nav('/stopover',{ state: { ...state,route_selected: {route_coordinate:finalRoute.coordinates,route_distance:finalRoute.distance} } })
+        nav('/postride/stopover',{ state: { ...state,route_selected: {route_coordinate:finalRoute.coordinates,route_distance:finalRoute.distance,duration:finalRoute.duration} } })
     }
 
     const formattedRoutes = routes.map((route) => {
@@ -31,7 +31,7 @@ const RouteOptionSelector = ({ routes ,state }) => {
     useEffect(() => {
         const selected = formattedRoutes[0];
         if (selected){
-            setFinalRoute({ "route": selected?.route, "coordinates": selected.coordinates,"distance":selected.distance });
+            setFinalRoute({ "route": selected?.route, "coordinates": selected.coordinates,"distance":selected.distance,"duration":selected.duration });
         }
       }, [routes]);
 

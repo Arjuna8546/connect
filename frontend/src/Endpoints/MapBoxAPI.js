@@ -108,7 +108,7 @@ export const getRouteDistanceFromStartToEnd = async (startCoord, endCoord, route
 
     return distanceInKm;
   } catch (error) {
-    console.error("❌ Error fetching route distance:", error?.response?.data || error.message);
+    console.error("Error fetching route distance:", error?.response?.data || error.message);
     return null;
   }
 };

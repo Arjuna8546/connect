@@ -44,7 +44,7 @@ const SelectVehicle = () => {
         setVehicleId(id)
     };
     const handleClick = () => {
-        nav('/publish', { state: { ...states, vehicle_id: vehicleId } })
+        nav('/postride/publish', { state: { ...states, user_id:user?.user?.id,vehicle_id: vehicleId } })
     }
     return (
         <>

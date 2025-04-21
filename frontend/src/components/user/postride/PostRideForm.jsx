@@ -37,7 +37,7 @@ const PostRideForm = () => {
   const handleSubmit =async() =>{
     const start_loc_coordinates = await getCoordinatesFromPlaceName(startLoc)
     const destination_loc_coordinates = await getCoordinatesFromPlaceName(destinationLoc)
-    nav('/locationselector',{ state: { postride: {"start_loc":startLoc,"destination_loc":destinationLoc,"start_loc_coordinates":start_loc_coordinates,"destination_loc_coordinates":destination_loc_coordinates} }  })
+    nav('/postride/locationselector',{ state: { postride: {"start_loc":startLoc,"destination_loc":destinationLoc,"start_loc_coordinates":start_loc_coordinates,"destination_loc_coordinates":destination_loc_coordinates} }  })
     
   }
   return (

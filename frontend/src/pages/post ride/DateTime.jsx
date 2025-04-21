@@ -32,7 +32,7 @@ const DateTime = () => {
         const time = selectedTime?.format("HH:mm");
         const combined = `${date} ${time}`;
         setCombinedOutput(combined);
-        nav('/count',{state:{...states,date_time:{date:date,time:time}}})
+        nav('/postride/count',{state:{...states,date_time:{date:date,time:time}}})
     };
 
     return (

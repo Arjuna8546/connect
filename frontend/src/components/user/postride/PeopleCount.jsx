@@ -22,7 +22,7 @@ const PeopleCount = ({state}) => {
 
   const handleSubmit = () => {
     const finalPassengerCount = isComfortChecked ? 2 : count;
-    nav('/price',{state:{...state,passanger_count:finalPassengerCount}})
+    nav('/postride/price',{state:{...state,passanger_count:finalPassengerCount}})
   };
 
   return (

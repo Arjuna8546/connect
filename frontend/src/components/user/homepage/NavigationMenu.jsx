@@ -31,7 +31,7 @@ const NavigationMenu = () => {
     {
       icon: TelegramIcon,
       label: "your rides",
-      onClick: () => console.log("Your rides clicked"),
+      onClick: () => nav('/yourrides'),
     },
     {
       icon: DiscourseIcon,

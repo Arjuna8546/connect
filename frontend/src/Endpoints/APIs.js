@@ -74,3 +74,12 @@ export const checkgoogle = (formBody) =>axios.post(
     'google/check/',
     formBody
 )
+
+export const ridepost = (formBody) => axios.post(
+    'ride/add/',
+    formBody
+)
+
+export const getrides = (user_id) => axios.get(
+    `ride/add/${user_id}`,
+)

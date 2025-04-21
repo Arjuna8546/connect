@@ -1,7 +1,11 @@
 "use client";
 import { useState } from "react";
+import { ridepost } from "../../../Endpoints/APIs";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
-export const BookingFinal = ({state}) => {
+export const BookingFinal = ({ state }) => {
+  const nav = useNavigate()
   const [instantBooking, setInstantBooking] = useState(false);
   const [reviewRequests, setReviewRequests] = useState(true);
   const [additionalInfo, setAdditionalInfo] = useState("");
@@ -14,6 +18,95 @@ export const BookingFinal = ({state}) => {
   const handleReviewRequestsChange = () => {
     setReviewRequests(true);
     setInstantBooking(false);
+  };
+
+  const handleSubmit = () => {
+    const input_data = state;
+    console.log(state)
+    let stopovers = [];
+
+    input_data["stopever"]["Final_stopovers"].forEach((stop, idx) => {
+ 
+      const stopoverPrice = input_data["stopover_prices"].find(price =>
+        price["start"] === input_data["postride"]["start_loc"] &&
+        price["stop"] === stop["name"]
+      );
+
+      stopovers.push({
+        "stop": stop["name"],
+        "stop_location": {
+          "type": "Point",
+          "coordinates": [stop["lon"], stop["lat"]]
+        },
+        "price": stopoverPrice ? stopoverPrice["price"] : 0, 
+        "position": idx + 1 
+      });
+    });
+
+    const payload = {
+      "user": input_data["user_id"],
+      "vehicle": input_data["vehicle_id"],
+      "start_location": {
+        "type": "Point",
+        "coordinates": input_data["postride"]["start_loc_coordinates"]
+      },
+      "start_location_name": input_data["postride"]["start_loc"],
+      "destination_location": {
+        "type": "Point",
+        "coordinates": input_data["postride"]["destination_loc_coordinates"]
+      },
+      "destination_location_name": input_data["postride"]["destination_loc"],
+      "pick_up_location": {
+        "type": "Point",
+        "coordinates": [
+          input_data["locationselected"]["Final_pickup"]["lng"],
+          input_data["locationselected"]["Final_pickup"]["lat"]
+        ]
+      },
+      "drop_off_location": {
+        "type": "Point",
+        "coordinates": [
+          input_data["locationselected"]["Final_dropoff"]["lng"],
+          input_data["locationselected"]["Final_dropoff"]["lat"]
+        ]
+      },
+      "date": input_data["date_time"]["date"],
+      "time": input_data["date_time"]["time"] + ":00",
+      "route": {
+        "type": "LineString",
+        "coordinates": input_data["route_selected"]["route_coordinate"]
+      },
+      "route_distance": input_data["route_selected"]["route_distance"],
+      "duration": input_data["route_selected"]["duration"],
+      "passenger_count": input_data["passanger_count"],
+      "instant_booking": instantBooking,
+      "additional_info": additionalInfo,
+      "stopovers": stopovers
+    };
+
+    const handleAddPost=async(payload)=>{
+      try{
+        const res = await ridepost(payload)
+        if(res.data.success===true){
+          toast.success(res.data.message)
+          nav('/')
+        }
+      }
+      catch(error){
+        const resData = error?.response?.data;
+
+        if (resData?.errors) {
+          const firstErrorKey = Object.keys(resData.errors)[0];
+          const firstErrorMsg = resData.errors[firstErrorKey][0];
+          toast.error(firstErrorMsg);
+        } else if (resData?.error) {
+          toast.error(resData.error);
+        } else {
+          toast.error("Something went wrong. Please try again.");
+        }
+      }
+    } 
+    handleAddPost(payload);
   };
 
   return (
@@ -65,9 +158,7 @@ export const BookingFinal = ({state}) => {
       />
 
       <button className="text-base font-bold text-black uppercase bg-white border border-solid shadow-2xl border-zinc-800 h-[55px] rounded-[30px] w-[90%]"
-      onClick={()=>{
-        console.log({...state,final_publish:{"instantBooking":instantBooking,"additionalInfo":additionalInfo } })
-      }}
+        onClick={() => handleSubmit()}
       >
         publish ride
       </button>

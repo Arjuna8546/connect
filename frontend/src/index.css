@@ -128,3 +128,8 @@
 .custom-scroll-hide::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
+
+*{
+  font-family: "Ubuntu", sans-serif;
+}
+

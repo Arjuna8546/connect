@@ -13,7 +13,7 @@ const Logo = () => {
                     alt="nostr-head"
                     className="h-[46px] w-[48px] align-bottom"
                 />
-                <span >ect</span>
+                <span >nect</span>
             </h1>
 
 

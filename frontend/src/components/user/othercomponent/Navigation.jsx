@@ -10,7 +10,7 @@ export const Navigation = () => {
   const nav = useNavigate();
 
   return (
-    <header className="flex  bg-black justify-between items-center px-20 border border-gray-700 border-opacity-10 h-[104px] max-md:px-10 max-sm:px-5">
+    <header className="flex  bg-black justify-between items-center px-20 border-b border-gray-700 border-opacity-10 h-[104px] max-md:px-10 max-sm:px-5">
       <div className="flex gap-5 items-center">
         <div className="flex items-center">
           <Logo />

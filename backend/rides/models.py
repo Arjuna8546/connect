@@ -19,6 +19,7 @@ class Ride(models.Model):
 
     route = models.LineStringField(geography=True, spatial_index=True)
     route_distance = models.CharField(max_length=50)
+    duration = models.CharField(max_length=25,default="0 hr")
 
     passenger_count = models.PositiveIntegerField()
 
