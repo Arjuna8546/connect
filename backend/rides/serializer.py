@@ -1,6 +1,6 @@
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from rest_framework import serializers
-from.models import Ride,StopOvers
+from.models import Ride,StopOvers,Seat
 from base.models import Users,Vehicles
 from rest_framework_gis.fields import GeometryField
 
@@ -10,7 +10,7 @@ class StopOversSerializer(GeoFeatureModelSerializer):
     class Meta:
         model = StopOvers
         geo_field = 'stop_location'
-        fields = ['stop', 'stop_location', 'price', 'position']
+        fields = ['stop', 'stop_location', 'price', 'position','duration','distance']
 
 class RideSerializer(GeoFeatureModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset = Users.objects.all())
@@ -30,14 +30,57 @@ class RideSerializer(GeoFeatureModelSerializer):
             'id', 'user', 'vehicle', 'start_location', 'start_location_name',
             'destination_location', 'destination_location_name', 'pick_up_location',
             'drop_off_location', 'date', 'time', 'route', 'route_distance','duration', 'passenger_count',
-            'instant_booking', 'additional_info', 'created_at', 'updated_at','stopovers'
+            'instant_booking', 'additional_info', 'created_at', 'updated_at','stopovers','price'
         ]
+        
+    def generate_short(self, name):
+        if not name:
+            return ""
+        first_word = name.split(',')[0].strip()
+        words = first_word.split()
+        if len(words) == 1:
+            return words[0][:3].upper()
+        return ''.join(word[0] for word in words[:3]).upper()
+    
     def create(self, validated_data):
         stopovers_data = validated_data.pop('stopover_prices', [])
-
         ride = Ride.objects.create(**validated_data)
 
+        stop_points = [{
+            "name": ride.start_location_name,
+            "point": ride.start_location,
+            "short": self.generate_short(ride.start_location_name),
+        }]
+        
         for stopover_data in stopovers_data:
             StopOvers.objects.create(ride=ride, **stopover_data)
+            stop_points.append({
+                "name": stopover_data['stop'],
+                "point": stopover_data['stop_location'],
+                "short": self.generate_short(stopover_data['stop']),
+            })
+
+        stop_points.append({
+            "name": ride.destination_location_name,
+            "point": ride.destination_location,
+            "short": self.generate_short(ride.destination_location_name),
+        })
+
+        for seat_number in range(1, ride.passenger_count + 1):
+            for i in range(len(stop_points) - 1):
+                Seat.objects.create(
+                    ride=ride,
+                    seat_number=seat_number,
+                    from_location=stop_points[i]["name"],
+                    from_short=stop_points[i]["short"],
+                    from_point=stop_points[i]["point"],
+                    to_location=stop_points[i + 1]["name"],
+                    to_short=stop_points[i + 1]["short"],
+                    to_point=stop_points[i + 1]["point"],
+                    status="vacant",
+                    booked_by=None
+                )
 
         return ride
+
+    

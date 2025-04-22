@@ -83,3 +83,17 @@ export const ridepost = (formBody) => axios.post(
 export const getrides = (user_id) => axios.get(
     `ride/add/${user_id}`,
 )
+
+export const search = (formBody) => axios.post(
+    'ride/search/',
+    formBody
+)
+
+export const seat = (ride_id)=> axios.get(
+    `ride/seat/${ride_id}`
+)
+
+export const updateSeat = (formBody) =>axios.patch(
+    'ride/seat/update/',
+    formBody
+)

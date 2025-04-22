@@ -22,7 +22,6 @@ export const BookingFinal = ({ state }) => {
 
   const handleSubmit = () => {
     const input_data = state;
-    console.log(state)
     let stopovers = [];
 
     input_data["stopever"]["Final_stopovers"].forEach((stop, idx) => {
@@ -32,6 +31,9 @@ export const BookingFinal = ({ state }) => {
         price["stop"] === stop["name"]
       );
 
+      const duration = stopoverPrice ? stopoverPrice["duration"] : '0 hr';
+      const distance = stopoverPrice ? `${stopoverPrice["distance"]} km` : '0';
+
       stopovers.push({
         "stop": stop["name"],
         "stop_location": {
@@ -39,10 +41,12 @@ export const BookingFinal = ({ state }) => {
           "coordinates": [stop["lon"], stop["lat"]]
         },
         "price": stopoverPrice ? stopoverPrice["price"] : 0, 
-        "position": idx + 1 
+        "position": idx + 1 ,
+        "duration":duration,
+        "distance":distance,
       });
     });
-
+    const finalPrice = input_data["stopover_prices"].at(-1)?.price ?? 0;
     const payload = {
       "user": input_data["user_id"],
       "vehicle": input_data["vehicle_id"],
@@ -81,7 +85,8 @@ export const BookingFinal = ({ state }) => {
       "passenger_count": input_data["passanger_count"],
       "instant_booking": instantBooking,
       "additional_info": additionalInfo,
-      "stopovers": stopovers
+      "stopovers": stopovers,
+      "price":finalPrice,
     };
 
     const handleAddPost=async(payload)=>{

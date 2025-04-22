@@ -11,12 +11,16 @@ import { SearchBar } from "../components/user/homepage/SearchBar";
 
 export const LandingPage = () => {
 
+  const handleSearch=({formBody})=>{
+    console.log(formBody)
+  }
+
   return (
     <div className="flex flex-col bg-black min-h-[screen]">
       <Navigation />
       <main className="flex-1">
         <HeroSection />
-        <SearchBar />
+        <SearchBar handleClick={handleSearch} />
         <AboutSection />
         <NetworkSection />
         <MobileAppSection />

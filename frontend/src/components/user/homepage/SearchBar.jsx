@@ -3,11 +3,11 @@ import { CalendarIcon, UserIcon } from "./Icons";
 import { searchLocation } from "../../../Endpoints/MapBoxAPI";
 import debounce from "lodash.debounce";
 
-export const SearchBar = () => {
+export const SearchBar = ({ handleClick }) => {
     const [selectedDate, setSelectedDate] = useState("")
     const [num, setNum] = useState(1)
-    const [startPoint,setStartPoint] = useState("")
-    const [endPoint,setEndPoint] = useState("")
+    const [startPoint, setStartPoint] = useState("")
+    const [endPoint, setEndPoint] = useState("")
     const [startSuggestions, setStartSuggestions] = useState([]);
     const [destSuggestions, setDestSuggestions] = useState([]);
 
@@ -15,7 +15,10 @@ export const SearchBar = () => {
         if (input.length < 3) return;
         try {
             const res = await searchLocation({ place: input });
-            const places = res.data.features.map((f) => f.place_name);
+            const places = res.data.features.map((f) => ({
+                name: f.place_name,
+                coordinates: f.center,
+            }));
             setFn(places);
         } catch (err) {
             console.error(err);
@@ -45,10 +48,11 @@ export const SearchBar = () => {
                 </svg>
                 <input
                     type="text"
-                    value={startPoint}
+                    value={startPoint?.name || ""}
                     placeholder="Leaving from..."
                     onChange={(e) => {
-                        setStartPoint(e.target.value)
+                        const name = e.target.value;
+                        setStartPoint({ name, coordinates: null });
                         debouncedStartFetch(e.target.value)
                     }}
                     className="bg-transparent w-full text-sm font-bold uppercase text-stone-300 tracking-[2.73px] placeholder:text-stone-500 focus:outline-none"
@@ -85,7 +89,7 @@ export const SearchBar = () => {
                                             d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                                         />
                                     </svg>
-                                    <span>{item}</span>
+                                    <span>{item.name}</span>
                                 </li>
                             ))}
                         </ul>
@@ -104,9 +108,10 @@ export const SearchBar = () => {
                 <input
                     type="text"
                     placeholder="Going to..."
-                    value={endPoint}
+                    value={endPoint?.name || ""}
                     onChange={(e) => {
-                        setEndPoint(e.target.value)
+                        const name = e.target.value;
+                        setEndPoint({ name, coordinates: null });
                         debouncedDestFetch(e.target.value)
                     }}
                     className="bg-transparent w-full text-sm font-bold uppercase text-stone-300 tracking-[2.73px] placeholder:text-stone-500 focus:outline-none"
@@ -143,7 +148,7 @@ export const SearchBar = () => {
                                             d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                                         />
                                     </svg>
-                                    <span>{item}</span>
+                                    <span>{item.name}</span>
                                 </li>
                             ))}
                         </ul>
@@ -175,7 +180,7 @@ export const SearchBar = () => {
                 />
             </div>
 
-            <button onClick={() => console.log(startPoint,endPoint)} className="w-44 text-base font-bold text-black uppercase bg-white shadow-2xl h-[76px] rounded-[48px] tracking-[3.15px] max-md:w-full">
+            <button onClick={() => handleClick({formBody:{ "start_point": startPoint, "end_point": endPoint, "date": selectedDate, "passenger_count": num }})} className="w-44 text-base font-bold text-black uppercase bg-white shadow-2xl h-[76px] rounded-[48px] tracking-[3.15px] max-md:w-full">
                 search
             </button>
         </div>

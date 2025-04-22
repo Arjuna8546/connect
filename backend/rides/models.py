@@ -1,5 +1,6 @@
 from django.contrib.gis.db import models
 from base.models import Users,Vehicles
+from django.conf import settings
 
 class Ride(models.Model):
     user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name="rides", db_index=True)
@@ -20,6 +21,7 @@ class Ride(models.Model):
     route = models.LineStringField(geography=True, spatial_index=True)
     route_distance = models.CharField(max_length=50)
     duration = models.CharField(max_length=25,default="0 hr")
+    price = models.PositiveIntegerField(default=0)
 
     passenger_count = models.PositiveIntegerField()
 
@@ -45,9 +47,45 @@ class StopOvers(models.Model):
     stop_location = models.PointField(geography=True, spatial_index=True)
     price = models.PositiveIntegerField()
     position = models.PositiveIntegerField()
+    duration = models.CharField(max_length=25,default="0 hr")
+    distance = models.CharField(max_length=25,default="0 km")
     
     class Meta:
         ordering = ['position']
     
     def __str__(self):
         return f"{self.stop} = ₹{self.price}"
+    
+class Seat(models.Model):
+    STATUS_CHOICE =[
+        ("vacant","vacant"),
+        ("booked","Booked")
+    ]
+    
+    ride = models.ForeignKey("Ride", related_name="seats", on_delete=models.CASCADE)
+    seat_number = models.IntegerField()
+
+    from_location = models.CharField(max_length=255)
+    from_short = models.CharField(max_length=10)
+    from_point = models.PointField(geography=True, spatial_index=True)
+
+    to_location = models.CharField(max_length=255)
+    to_short = models.CharField(max_length=10)
+    to_point = models.PointField(geography=True, spatial_index=True)
+
+    status = models.CharField(max_length=20,choices=STATUS_CHOICE,default="vacant")
+    booked_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="booked_segments"
+    )
+
+
+    def __str__(self):
+        return f"Seat {self.seat_number} - {self.from_short} to {self.to_short} (Ride {self.ride.id})"
+
+    class Meta:
+        verbose_name = "Seat Segment"
+        verbose_name_plural = "Seat Segments"

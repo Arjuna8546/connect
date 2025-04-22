@@ -17,10 +17,8 @@ const StopOverForm = ({ coordinates ,state }) => {
 
             const cities = places.map((place) => {
                 const name = place.tags.name || "";
-                const nameMl = place.tags["name:ml"] || "";
-                const displayName = nameMl ? `${name} (${nameMl})` : name;
                 return {
-                    name: displayName,
+                    name: name,
                     lat: place.lat,
                     lon: place.lon,
                 };

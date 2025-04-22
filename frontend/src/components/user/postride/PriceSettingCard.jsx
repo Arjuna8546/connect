@@ -21,6 +21,8 @@ const PriceSettingCard = ({ distancePrice, distances, state }) => {
     const handleClick = () => {
         const start = state?.postride?.start_loc;
         const end = state?.postride?.destination_loc;
+        const duration = state?.route_selected?.duration
+        const distance = state?.route_selected?.route_distance
 
         const start_coordinates = state?.postride?.start_loc_coordinates;
         const end_coordinates = state?.postride?.destination_loc_coordinates;
@@ -37,6 +39,8 @@ const PriceSettingCard = ({ distancePrice, distances, state }) => {
                 stop_lat: stop.lat,
                 stop_lon: stop.lon,
                 price: price,
+                duration:stop.duration,
+                distance:stop.distance,
             });
         });
 
@@ -48,6 +52,8 @@ const PriceSettingCard = ({ distancePrice, distances, state }) => {
             stop_lat: end_coordinates[1],
             stop_lon: end_coordinates[0],
             price: Math.ceil(price * proportion),
+            duration:duration,
+            distnace:distance
         });
 
         nav('/postride/vehicles', { state: { ...state, stopover_prices: priceBreakdown } })

@@ -34,8 +34,8 @@ const PricePage = () => {
           lon: stop.lon,
         };
 
-        const distance = await getRouteDistanceFromStartToEnd(startCoord, endCoord, routeCoordinates);
-        distances.push({ stop: stop.name,lat:stop.lat,lon:stop.lon, distance  });
+        const {distance,duration} = await getRouteDistanceFromStartToEnd(startCoord, endCoord, routeCoordinates);
+        distances.push({ stop: stop.name,lat:stop.lat,lon:stop.lon, distance ,duration });
       }
 
       setStopOverDistance(distances)

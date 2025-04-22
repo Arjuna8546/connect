@@ -88,7 +88,7 @@ const StopItem = ({ item, name, isStartOrEnd = false, proportion = 1 }) => {
       <div className="flex-1">
         <h3 className="text-sm font-bold uppercase text-zinc-800 tracking-[2px]">{stopName}</h3>
         {distance && (
-          <p className="text-xs text-gray-500 mt-1">Distance: {distance.toFixed(2)} km</p>
+          <p className="text-xs text-gray-500 mt-1">Distance: {distance} km</p>
         )}
       </div>
 
