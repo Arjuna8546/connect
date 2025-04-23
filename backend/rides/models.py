@@ -56,10 +56,40 @@ class StopOvers(models.Model):
     def __str__(self):
         return f"{self.stop} = ₹{self.price}"
     
+class BookRide(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    ride = models.ForeignKey("Ride", on_delete=models.CASCADE)
+
+    price = models.DecimalField(max_digits=8, decimal_places=2)
+    
+    from_loc_name = models.CharField(max_length=255)
+    to_loc_name = models.CharField(max_length=255)
+
+    payment_status = models.CharField(max_length=20, choices=[
+        ("pending", "Pending"),
+        ("paid", "Paid"),
+        ("failed", "Failed"),
+    ], default="pending")
+
+    booking_status = models.CharField(max_length=20, choices=[
+        ("active", "Active"),
+        ("pending","Pending"),
+        ("cancelled", "Cancelled"),
+        ("completed", "Completed"),
+    ], default="active")
+
+    booking_time = models.DateTimeField(auto_now_add=True)
+    
+    seat_segments = models.ManyToManyField("Seat", blank=True, related_name="held_by_bookings")
+
+    def __str__(self):
+        return f"Booking by {self.user.username} for Ride {self.ride.id}"
+
+    
 class Seat(models.Model):
     STATUS_CHOICE =[
         ("vacant","vacant"),
-        ("booked","Booked")
+        ("booked","Booked"),
     ]
     
     ride = models.ForeignKey("Ride", related_name="seats", on_delete=models.CASCADE)
@@ -81,7 +111,13 @@ class Seat(models.Model):
         blank=True,
         related_name="booked_segments"
     )
-
+    booked_by_booking = models.ForeignKey(
+        "BookRide",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="segments"
+    )
 
     def __str__(self):
         return f"Seat {self.seat_number} - {self.from_short} to {self.to_short} (Ride {self.ride.id})"
