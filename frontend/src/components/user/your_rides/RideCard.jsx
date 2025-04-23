@@ -3,6 +3,7 @@ import React from "react";
 import StopoversTimeline from "./StopoversTimeline";
 
 export default function RideCard({
+  id,
   startTime,
   endTime,
   from,
@@ -14,12 +15,16 @@ export default function RideCard({
   vehicle,
   distance,
   routeName,
+  instantBooking,
   pickupLocation,
   dropoffLocation,
   additionalInfo,
   stopovers,
   passengersList,
-}) {
+  handleBookRequest,
+}) 
+
+{
   return (
     <article className="w-full py-10 px-6 md:px-14 mx-auto rounded-2xl border border-stone-800 shadow-2xl bg-[#0e0e0e] mb-8 transition hover:shadow-white/35 animate-fade-in relative overflow-hidden flex flex-col gap-7">
 
@@ -112,9 +117,14 @@ export default function RideCard({
 
       <div className="flex flex-col-reverse md:flex-row md:items-center md:gap-7 gap-5 w-full justify-between pt-4">
 
-        <button className="border-none bg-white text-black font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[125px] shadow-lg hover:from-[#9b87f5] hover:to-[#0FA0CE] hover:scale-105 active:scale-95 transition-all duration-200 self-end md:self-auto">
+        <button className="border-none bg-white text-black font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[125px] shadow-lg hover:from-[#ffffff] hover:to-[#f9f9f9] hover:scale-105 active:scale-95 transition-all duration-200 self-end md:self-auto">
           {status} ride
         </button>
+        {!instantBooking &&<button className="border-none bg-white text-black font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[125px] shadow-lg hover:from-[#ffffff] hover:to-[#ffffff] hover:scale-105 active:scale-95 transition-all duration-200 self-end md:self-auto"
+        onClick={()=>handleBookRequest(id)}
+        >
+          requests
+        </button>}
       </div>
     </article>
   );

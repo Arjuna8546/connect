@@ -97,3 +97,7 @@ export const updateSeat = (formBody) =>axios.patch(
     'ride/seat/update/',
     formBody
 )
+
+export const getbookings = (id,status)=>axios.get(
+    `ride/booked/${id}/?status=${status}`
+)

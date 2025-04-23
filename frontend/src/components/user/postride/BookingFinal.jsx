@@ -46,6 +46,12 @@ export const BookingFinal = ({ state }) => {
         "distance":distance,
       });
     });
+    stopovers.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+
+    stopovers.forEach((stop, index) => {
+      stop.position = index + 1;
+    });
+
     const finalPrice = input_data["stopover_prices"].at(-1)?.price ?? 0;
     const payload = {
       "user": input_data["user_id"],

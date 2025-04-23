@@ -26,7 +26,7 @@ const NavigationMenu = () => {
     {
       icon: CarIcon,
       label: "booked rides",
-      onClick: () => console.log("Booked rides clicked"),
+      onClick: () => nav('/yourbookings'),
     },
     {
       icon: TelegramIcon,

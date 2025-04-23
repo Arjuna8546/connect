@@ -4,11 +4,13 @@ from rest_framework import status
 from rest_framework import permissions
 
 from base.models import Users
-from .models import Ride,Seat
+from .models import Ride,Seat,BookRide,StopOvers
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.db.models import Q
 from datetime import datetime, timedelta
+from django.db import transaction
+from django.shortcuts import get_object_or_404
 
 from .serializer import RideSerializer
 
@@ -16,6 +18,7 @@ from .serializer import RideSerializer
 class PostRide(APIView):
     def post(self,request):
         serializer = RideSerializer(data=request.data)
+        print(request.data)
         if serializer.is_valid():
             ride = serializer.save()
             return Response({"success": True,"message":"ride posted successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
@@ -32,29 +35,37 @@ class PostRide(APIView):
         ride_data = []
 
         for ride in rides:
-            passengers_list = [
-                {
-                    "name": "Anjali R",
-                    "gender": "Female",
-                    "profileImage": "https://randomuser.me/api/portraits/women/44.jpg",
-                    "from": "Manakkalappadi",
-                    "to": "Vellangallur"
-                },
-                {
-                    "name": "Rakesh P",
-                    "gender": "Male",
-                    "profileImage": "https://randomuser.me/api/portraits/men/32.jpg",
-                    "from": "Ernakulam",
-                    "to": "Thrissur"
-                }
-            ]
+            passengers_list = []
+
+            bookings = BookRide.objects.filter(ride=ride).distinct()
+
+            for booking in bookings:
+                user = booking.user
+                segments = Seat.objects.filter(booked_by_booking=booking).order_by('id')
+
+                if segments.exists():
+                    from_location = segments.first().from_location
+                    to_location = segments.last().to_location
+
+                    passengers_list.append({
+                        "name": user.username,
+                        "gender": user.gender,
+                        "profileImage": user.profile_url if user.profile_url else None,
+                        "from": from_location,
+                        "to": to_location
+                    })
 
             formatted_date = ride.date.strftime("%A, %d %B")
             start_time = ride.time.strftime("%H : %M") if ride.time else "N/A"
-
-            end_time = "20 : 20"
+            try:
+                ride_datetime = datetime.combine(datetime.today(), ride.time)
+                ride_duration = parse_duration(ride.duration)
+                end_time = (ride_datetime + ride_duration).strftime("%H:%M")
+            except:
+                end_time = ""
 
             ride_data.append({
+                "id":ride.id,
                 "startTime": start_time,
                 "endTime": end_time,
                 "from": ride.start_location_name.upper(),
@@ -73,6 +84,7 @@ class PostRide(APIView):
                 "pickupLocation": ride.start_location_name,
                 "dropoffLocation": ride.destination_location_name,
                 "additionalInfo": ride.additional_info,
+                "instantBooking":ride.instant_booking,
                 "stopovers": [
                     {
                         "stop": stop.stop,
@@ -87,7 +99,6 @@ class PostRide(APIView):
                 ],
                 "passengersList": passengers_list 
             })
-
         return Response({
             "success": True,
             "rides": ride_data
@@ -200,8 +211,7 @@ class RideSearchView(APIView):
                     "seat_number": sn,
                     "segments": []
                 }
-                
-        
+            
             segment = {
                 "segment_id": seat.id,
                 "from": seat.from_location,
@@ -209,16 +219,20 @@ class RideSearchView(APIView):
                 "from_short": seat.from_short,
                 "to_short": seat.to_short,
                 "status": seat.status,
-                
+                "booked_by": {
+                    "username": seat.booked_by.username,
+                }if seat.booked_by else None
+
             }
             seat_map[sn]["segments"].append(segment)
 
         return Response({"success":True,"data":list(seat_map.values())}, status=status.HTTP_200_OK)
     
-    def patch(self,request):
+class RideBook(APIView):
+    def patch(self, request):
         try:
             user_id = request.data.get("user_id")
-            segment_ids = request.data.get("segment_ids", [])
+            segment_ids = request.data.get("segment_ids") 
 
             if not user_id or not segment_ids:
                 return Response({
@@ -233,14 +247,80 @@ class RideSearchView(APIView):
                     "message": "User not found"
                 }, status=status.HTTP_404_NOT_FOUND)
 
-            updated_count = Seat.objects.filter(id__in=segment_ids, status='vacant').update(
-                status='booked',
-                booked_by=user
-            )
+            segment_ids = list(map(int, segment_ids))  
+            seats = Seat.objects.select_related("ride").filter(id__in=segment_ids, status="vacant")
+
+            if seats.count() != len(segment_ids):
+                return Response({
+                    "success": False,
+                    "message": "Some segments are already booked or invalid."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            ride = seats.first().ride
+            
+            if ride.user.id==user_id:
+                return Response({
+                    "success": False,
+                    "message": "rider cannot book the ride."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            seats = Seat.objects.filter(id__in=segment_ids).order_by("id")
+            from_loc_name = seats.first().from_location
+            to_loc_name = seats.last().to_location
+            
+            ride = seats.first().ride
+            
+            stopovers = list(ride.stopover_prices.all().order_by("position"))
+            stop_map = {s.stop: s.price for s in stopovers}
+
+            if from_loc_name == ride.start_location_name:
+                if to_loc_name in stop_map:
+                    segment_price = stop_map[to_loc_name]
+                elif to_loc_name == ride.destination_location_name:
+                    segment_price = ride.price
+                else:
+                    raise ValueError("Invalid 'to' location.")
+
+            elif to_loc_name == ride.destination_location_name:
+                if from_loc_name in stop_map:
+                    segment_price = ride.price - stop_map[from_loc_name]
+                else:
+                    raise ValueError("Invalid 'from' location.")
+
+            elif from_loc_name in stop_map and to_loc_name in stop_map:
+                segment_price = stop_map[to_loc_name] - stop_map[from_loc_name]
+
+            else:
+                raise ValueError("Invalid stop combination.")
+
+            with transaction.atomic():
+                booking_status = "active" if ride.instant_booking else "pending"
+                
+                bookride = BookRide(
+                    user=user,
+                    ride=ride,
+                    price=segment_price,
+                    payment_status="pending",
+                    booking_status=booking_status,
+                    from_loc_name=from_loc_name,
+                    to_loc_name=to_loc_name,
+                )
+                bookride.save()
+
+                if ride.instant_booking:
+                    seats.update(
+                        status="booked",
+                        booked_by=user,
+                        booked_by_booking=bookride
+                    )
+                else:
+                    bookride.segments.set(seats) 
 
             return Response({
                 "success": True,
-                "message": f"{updated_count} segments booked successfully."
+                "message": f"{seats.count()} segments booked successfully.",
+                "booking_id": bookride.id,
+                "segment_price": segment_price
             }, status=status.HTTP_200_OK)
 
         except Exception as e:
@@ -248,3 +328,84 @@ class RideSearchView(APIView):
                 "success": False,
                 "message": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+    def get(self, request, user_id):
+        user = get_object_or_404(Users, id=user_id)
+        stats = request.GET.get('status', 'active')
+        bookings = BookRide.objects.filter(Q(user=user)&Q(booking_status=stats)).select_related('ride__user', 'ride__vehicle')
+
+        booking_list = []
+
+        for booking in bookings:
+            seat = booking.segments.first()
+            ride = booking.ride
+            rider = ride.user
+            vehicle = ride.vehicle
+            
+            form_time = StopOvers.objects.filter(stop=booking.from_loc_name)
+            
+            booking_list.append({
+                "id": booking.id,
+                "from":booking.from_loc_name,
+                "to": booking.to_loc_name,
+                "pickup_time": f"{ride.date}T{ride.time}",
+                "price": str(booking.price),
+                "ride": {
+                    "id": ride.id,
+                    "rider": {
+                        "name": rider.username,
+                        "gender": rider.gender,
+                        "profileImage": rider.profile_url if rider.profile_url else ""
+                    },
+                    "vehicle": {
+                        "type": vehicle.vehicle_type,
+                        "model": vehicle.vehicle_model,
+                        "number": vehicle.vehicle_register_no
+                    }
+                }
+            })
+
+        return Response({
+                "success": True,
+                "data":booking_list
+            }, status=status.HTTP_200_OK)
+        
+class ApproveRide(APIView):
+    def get(self,request,ride_id):
+        
+        ride = get_object_or_404(Ride,id=ride_id)
+        allbookings = BookRide.objects.filter(ride=ride, booking_status="pending")
+        
+        approve_list = []
+        
+        for bookings in allbookings:
+            user = bookings.user
+            approve_list.append({
+                "id": bookings.id,
+                "from":bookings.from_loc_name,
+                "to": bookings.to_loc_name,
+                "pickup_time": f"{ride.date}T{ride.time}",
+                "price": str(bookings.price),
+                "seat_segments": [
+                    {
+                        "id": seat.id,
+                        "seat_number": seat.seat_number,
+                        "from": seat.from_short,
+                        "to": seat.to_short,
+                        "status": seat.status
+                    }
+                    for seat in bookings.segments.all()
+                    ],
+                "ride": {
+                    "id": ride.id,
+                    "rider": {
+                        "name": user.username,
+                        "gender": user.gender,
+                        "profileImage": user.profile_url if user.profile_url else ""
+                    }
+                }
+            })
+            
+        return Response(approve_list)
+        

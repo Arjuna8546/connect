@@ -6,19 +6,26 @@ const SeatBookingModal = ({ seatData, onBook, onClose, users }) => {
     const handleSegmentClick = (seatNumber, segment, segmentIndex, seat) => {
         if (segment.status !== "vacant") return;
 
-        const existing = selectedSeats.find(sel => sel.seatNumber === seatNumber);
-
-        if (!existing) {
-            return setSelectedSeats([...selectedSeats, {
+        if (selectedSeats.length > 0 && selectedSeats[0].seatNumber !== seatNumber) {
+            setSelectedSeats([{
                 seatNumber,
                 indices: [segmentIndex],
             }]);
+            return;
+        } 
+        const existing = selectedSeats.find(sel => sel.seatNumber === seatNumber);
+        if (!existing) {
+            setSelectedSeats([{
+                seatNumber,
+                indices: [segmentIndex],
+            }]);
+            return;
         }
-
+    
         const indices = existing.indices;
         const lastIndex = indices[indices.length - 1];
-
-        let updatedSeats = selectedSeats.filter(sel => sel.seatNumber !== seatNumber);
+    
+        let updatedSeats = [];
 
         if (segmentIndex === lastIndex + 1 && seat.segments[segmentIndex].status === "vacant") {
             updatedSeats.push({
@@ -31,10 +38,10 @@ const SeatBookingModal = ({ seatData, onBook, onClose, users }) => {
                 indices: [segmentIndex],
             });
         }
-
+    
         setSelectedSeats(updatedSeats);
     };
-
+    
     const handleBooking = () => {
         if (selectedSeats.length > 0) {
             const bookingDetails = selectedSeats.map(sel => {
@@ -117,7 +124,7 @@ const SeatBookingModal = ({ seatData, onBook, onClose, users }) => {
                                         <div className="whitespace-nowrap">{segment.from_short} → {segment.to_short}</div>
                                         {segment.status === "booked" && (
                                             <div className="mt-1 px-2 py-1 text-xs rounded-full bg-white text-black font-semibold shadow-inner">
-                                                {segment.booked_by || "Unknown"}
+                                                {segment.booked_by.username || "Unknown"}
                                             </div>
                                         )}
                                     </div>

@@ -9,20 +9,34 @@ const RideList = ({ rides }) => {
   const [detailModal, setDetailModal] = useState(false)
   const [rideId, setRideId] = useState(null)
   const [seatData, setSeatData] = useState([])
-  const user = useSelector((state)=>state.user)
+  const user = useSelector((state) => state.user)
 
-  const handleBook = async(bookingDetails) => {
-    const segement_ids = bookingDetails.flatMap((bookDetail)=>[...bookDetail.segment_ids])
-    const res = await updateSeat({"user_id":user?.user?.id,"segment_ids":segement_ids})
-    if(res?.data?.success===true){
-      toast.success(res?.data?.message)
+  const handleBook = async (bookingDetails) => {
+    try {
+      if (!user?.user?.id) {
+        toast.error("User not logged in.");
+        return;
+      }
+      const segment_ids = bookingDetails.flatMap((bookDetail) => bookDetail.segment_ids || []);
+      const res = await updateSeat({
+        user_id: user.user.id,
+        segment_ids
+      });
+      if (res?.data?.success === true) {
+        toast.success(res.data.message || "Booking successful!");
+      } else {
+        toast.error(res?.data?.message || "Booking failed. Please try again.");
+      }
+
+    } catch (error) {
+      toast.error(error?.response?.data?.message);
     }
+  };
 
-  }
   const getSeatDetails = async (rideId) => {
     try {
       const res = await seat(rideId);
-  
+
       if (res?.data?.success === true && Array.isArray(res.data.data)) {
         setSeatData(res.data.data);
       } else {

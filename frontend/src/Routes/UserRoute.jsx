@@ -20,6 +20,7 @@ import PublishRidePage from '../pages/post ride/PublishRidePage'
 import SelectVehicle from '../pages/post ride/SelectVehicle'
 import YourRidePage from '../pages/your ride/YourRidePage'
 import RideSearchPage from '../pages/search ride/SearchRidePage'
+import BookedRide from '../pages/Booked rides/BookedRide'
 
 
 
@@ -46,6 +47,9 @@ function UserRoute() {
                 <Route path='/yourrides' element={<ProtectedRoute><YourRidePage/></ProtectedRoute>}></Route>
 
                 <Route path='/search' element={<ProtectedRoute><RideSearchPage/></ProtectedRoute>}></Route>
+
+                <Route path='/yourbookings' element={<ProtectedRoute><BookedRide/></ProtectedRoute>}></Route>
+
 
             </Routes>
 
