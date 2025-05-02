@@ -27,3 +27,13 @@ export const blockuser = (formBody)=> adminaxios.patch(
     'blockuser/',
     formBody
 )
+
+export const admingetallrides = (page = 1) => {
+    let url = `allrides/?page=${page}`;
+    return adminaxios.get(url);
+}
+
+export const admingetallbookings = (page = 1) => {
+    let url = `allbookings/?page=${page}`;
+    return adminaxios.get(url);
+}

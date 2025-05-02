@@ -4,6 +4,7 @@ from rest_framework_simplejwt.views import (
 )
 from rest_framework.views import APIView
 from base.models import Users
+from rides.models import Ride,BookRide
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
@@ -17,6 +18,7 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework.exceptions import AuthenticationFailed
 from  base.serializer import CustomTokenObtainPairSerializer,UserRegistrationSerializer
+from rides.serializer import RideSerializer,BookRideSerializer
 from base.models import Users  
 from .permissions import IsAdmin
 from django.db.models import Q
@@ -262,3 +264,40 @@ class BlockUser(APIView):
                 "success": False,
                 "message": f"An error occurred while updating profile: {str(e)}"
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+
+class AllRides(APIView):
+    permission_classes=[IsAdmin]
+    def get(self,request):
+        try: 
+            rides = Ride.objects.all().order_by('id')
+
+            paginator = PageNumberPagination()
+            paginator.page_size = 2
+            result_page = paginator.paginate_queryset(rides, request)
+            serializer = RideSerializer(result_page,many=True)
+            return paginator.get_paginated_response({
+                "success": True,
+                "message": "All rides retrieved successfully",
+                "rides": serializer.data
+            })
+        except Exception as e:
+            return Response({"success":False,"message":f"An error occured: {str(e)}"},status=status.HTTP_400_BAD_REQUEST)
+        
+class AllBook(APIView):
+    permission_classes=[IsAdmin]
+    def get(self,request):
+        try: 
+            bookings = BookRide.objects.all().order_by('id')
+
+            paginator = PageNumberPagination()
+            paginator.page_size = 2
+            result_page = paginator.paginate_queryset(bookings, request)
+            serializer = BookRideSerializer(result_page,many=True)
+            return paginator.get_paginated_response({
+                "success": True,
+                "message": "All rides retrieved successfully",
+                "bookings": serializer.data
+            })
+        except Exception as e:
+            return Response({"success":False,"message":f"An error occured: {str(e)}"},status=status.HTTP_400_BAD_REQUEST)

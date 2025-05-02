@@ -1,8 +1,9 @@
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from rest_framework import serializers
-from.models import Ride,StopOvers,Seat
+from.models import Ride,StopOvers,Seat,BookRide
 from base.models import Users,Vehicles
 from rest_framework_gis.fields import GeometryField
+from base.serializer import UserRegistrationSerializer
 
 class StopOversSerializer(GeoFeatureModelSerializer):
     stop_location = GeometryField()
@@ -14,6 +15,7 @@ class StopOversSerializer(GeoFeatureModelSerializer):
 
 class RideSerializer(GeoFeatureModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset = Users.objects.all())
+    user_details = UserRegistrationSerializer(source='user', read_only=True)
     vehicle = serializers.PrimaryKeyRelatedField(queryset = Vehicles.objects.all())
     start_location = GeometryField()
     destination_location = GeometryField()
@@ -27,7 +29,7 @@ class RideSerializer(GeoFeatureModelSerializer):
         model = Ride
         geo_field = "route"
         fields = [
-            'id', 'user', 'vehicle', 'start_location', 'start_location_name',
+            'id', 'user','user_details', 'vehicle', 'start_location', 'start_location_name',
             'destination_location', 'destination_location_name', 'pick_up_location',
             'drop_off_location', 'date', 'time', 'route', 'route_distance','duration', 'passenger_count',
             'instant_booking', 'additional_info', 'created_at', 'updated_at','stopovers','price'
@@ -82,5 +84,52 @@ class RideSerializer(GeoFeatureModelSerializer):
                 )
 
         return ride
-
     
+
+
+class SeatSegmentSerializer(serializers.ModelSerializer):
+    from_point = GeometryField()
+    to_point = GeometryField()
+
+    class Meta:
+        model = Seat
+        fields = [
+            "id", "seat_number", "from_location", "from_short", "from_point",
+            "to_location", "to_short", "to_point", "status"
+        ]
+
+class RideMiniSerializer(GeoFeatureModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    user_details = UserRegistrationSerializer(source="user", read_only=True)
+    start_location = GeometryField()
+    destination_location = GeometryField()
+    pick_up_location = GeometryField(required=False, allow_null=True)
+    drop_off_location = GeometryField(required=False, allow_null=True)
+    route = GeometryField()
+    stopovers = StopOversSerializer(source='stopover_prices', many=True)
+
+    class Meta:
+        model = Ride
+        geo_field = "route"
+        fields = [
+            'id', 'user', 'user_details', 'vehicle', 'start_location', 'start_location_name',
+            'destination_location', 'destination_location_name', 'pick_up_location',
+            'drop_off_location', 'date', 'time', 'route', 'route_distance', 'duration',
+            'passenger_count', 'instant_booking', 'additional_info', 'created_at',
+            'updated_at', 'stopovers', 'price'
+        ]
+
+class BookRideSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    user_details = UserRegistrationSerializer(source="user", read_only=True)
+    ride = serializers.PrimaryKeyRelatedField(queryset=Ride.objects.all())
+    ride_details = RideMiniSerializer(source="ride", read_only=True)
+    seat_segments = SeatSegmentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = BookRide
+        fields = [
+            "id", "user", "user_details", "ride", "ride_details",
+            "price", "from_loc_name", "to_loc_name", "payment_status",
+            "booking_status", "booking_time", "seat_segments"
+        ]

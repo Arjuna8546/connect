@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import AdminTokenObtainPairView,AdminTokenRefreshView,Logout,AdminAllUser,VerifyUsers,BlockUser
+from .views import AdminTokenObtainPairView,AdminTokenRefreshView,Logout,AdminAllUser,VerifyUsers,BlockUser,AllRides,AllBook
 
 urlpatterns = [
     path('token/', AdminTokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -8,6 +8,9 @@ urlpatterns = [
     path('logout/',Logout.as_view(),name="logout"),
     path('allusers/',AdminAllUser.as_view(),name="get_all_user"),
     path('verifyusers/',VerifyUsers.as_view(),name="get_all_verify_user"),
-    path('blockuser/',BlockUser.as_view(),name="block user")
+    path('blockuser/',BlockUser.as_view(),name="block user"),
+    path('allrides/',AllRides.as_view(),name="get_all_rides"),
+    path('allbookings/',AllBook.as_view(),name="get_all_rides"),
+    
     
 ]

@@ -47,10 +47,12 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_gis',
     "corsheaders",
+    'channels',
 
     'base',
     'Admin',
     'rides',
+    'chatapp',
 ]
 
 REST_FRAMEWORK = {
@@ -104,6 +106,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+
+ASGI_APPLICATION = 'backend.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6380)],
+        },
+    },
+}
 
 
 # Database

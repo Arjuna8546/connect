@@ -84,8 +84,8 @@ export const getrides = (user_id) => axios.get(
     `ride/add/${user_id}`,
 )
 
-export const search = (formBody) => axios.post(
-    'ride/search/',
+export const search = (formBody,pathParam) => axios.post(
+    `ride/search/?${pathParam}`,
     formBody
 )
 
@@ -100,4 +100,13 @@ export const updateSeat = (formBody) =>axios.patch(
 
 export const getbookings = (id,status)=>axios.get(
     `ride/booked/${id}/?status=${status}`
+)
+
+export const getallapproves =(id)=>axios.get(
+    `ride/book/approve/${id}`
+)
+
+export const approveorreject = (formBody)=>axios.post(
+    'ride/book/staus',
+    formBody
 )

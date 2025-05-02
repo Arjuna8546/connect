@@ -7,13 +7,45 @@ import RideList from "../../components/user/search ride/RideList";
 import { search } from "../../Endpoints/APIs";
 
 const RideSearchPage = () => {
-  const [rides,setRides]= useState([])
-  const handleSearch = async({formBody})=>{
-    const res = await search(formBody) 
-    if(res){
-      setRides(res?.data?.data)
+  const [filters, setFilters] = useState({
+    gender: "",
+    minPrice: 0,
+    maxPrice: "",
+    instantBooking: "",
+  });
+  
+  const [rides, setRides] = useState([]);
+  const [savedFormBody, setSavedFormBody] = useState({});
+
+  const getPathParam = () => {
+    return Object.entries(filters)
+      .map(([key, value]) => `${key}=${value === "" ? "" : value}`)
+      .join("&");
+  };
+  
+
+  const handleSearch = async ({ formBody }) => {
+    const pathParam = getPathParam();
+    setSavedFormBody(formBody); 
+  
+    try {
+      const res = await search(formBody, pathParam); 
+      if (res) {
+        setRides(res?.data?.data || []);
+      }
+    } catch (err) {
+      console.error("Error fetching rides:", err);
     }
-  }
+  };
+  
+
+  const handleApply = () => {
+    const pathParam = getPathParam();
+    if (Object.keys(savedFormBody).length > 0) {
+      handleSearch({ formBody: savedFormBody });
+    }
+  };
+  
   return (
     <div className="w-full px-8 min-h-screen bg-black text-white">
 
@@ -27,7 +59,7 @@ const RideSearchPage = () => {
       <div className="flex flex-col lg:flex-row w-full px-4 sm:px-6 md:px-8 gap-4 py-4">
 
         <div className="w-full lg:max-w-sm">
-          <FilterPanel />
+          <FilterPanel filters={filters} setFilters={setFilters} handleApply={handleApply}/>
         </div>
 
 

@@ -18,7 +18,6 @@ from .serializer import RideSerializer
 class PostRide(APIView):
     def post(self,request):
         serializer = RideSerializer(data=request.data)
-        print(request.data)
         if serializer.is_valid():
             ride = serializer.save()
             return Response({"success": True,"message":"ride posted successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
@@ -37,7 +36,7 @@ class PostRide(APIView):
         for ride in rides:
             passengers_list = []
 
-            bookings = BookRide.objects.filter(ride=ride).distinct()
+            bookings = BookRide.objects.filter(Q(ride=ride)&Q(booking_status="active")).distinct()
 
             for booking in bookings:
                 user = booking.user
@@ -126,6 +125,11 @@ class RideSearchView(APIView):
         end_point = data.get("end_point", {})
         date = data.get("date")
         passenger_count = data.get("passenger_count")
+        
+        gender = request.GET.get("gender")
+        min_price = request.GET.get("minPrice")
+        max_price = request.GET.get("maxPrice")
+        instant_booking = request.GET.get("instantBooking")
 
         if not (start_point and end_point and date and passenger_count):
             return Response({"error": "Missing required fields."}, status=status.HTTP_400_BAD_REQUEST)
@@ -150,7 +154,22 @@ class RideSearchView(APIView):
         rides = Ride.objects.filter(
             date=date,
             passenger_count__gte=passenger_count
-        ).filter(
+        )
+        
+        if gender:
+            rides = rides.filter(user_id__gender=gender)
+        
+        if min_price:
+            rides = rides.filter(price__gte=min_price)
+            
+        if max_price:
+            rides = rides.filter(price__lte=max_price)
+         
+        if instant_booking:
+            if instant_booking=="true":
+                rides = rides.filter(instant_booking=True)       
+        
+        rides = rides.filter(
             (
                 Q(start_location__distance_lte=(start_point_geom, D(km=5))) |
                 Q(stopover_prices__stop_location__distance_lte=(start_point_geom, D(km=5)))
@@ -295,7 +314,7 @@ class RideBook(APIView):
 
             with transaction.atomic():
                 booking_status = "active" if ride.instant_booking else "pending"
-                
+                message = "segments booked successfully." if ride.instant_booking else "segments booking Requested."
                 bookride = BookRide(
                     user=user,
                     ride=ride,
@@ -318,7 +337,7 @@ class RideBook(APIView):
 
             return Response({
                 "success": True,
-                "message": f"{seats.count()} segments booked successfully.",
+                "message": f"{seats.count()} {message}",
                 "booking_id": bookride.id,
                 "segment_price": segment_price
             }, status=status.HTTP_200_OK)
@@ -397,9 +416,9 @@ class ApproveRide(APIView):
                     }
                     for seat in bookings.segments.all()
                     ],
-                "ride": {
-                    "id": ride.id,
-                    "rider": {
+                "user": {
+                    "id": user.id,
+                    "users": {
                         "name": user.username,
                         "gender": user.gender,
                         "profileImage": user.profile_url if user.profile_url else ""
@@ -407,5 +426,50 @@ class ApproveRide(APIView):
                 }
             })
             
-        return Response(approve_list)
+        return Response({"success":True,"data":approve_list},status=status.HTTP_200_OK)
+    
+    def post(self,request):
+        
+        book_ride_id = request.data.get("book_ride_id")
+        approve = request.data.get("approve")
+        
+        bookride = get_object_or_404(BookRide,id=book_ride_id)
+        
+        if bookride.booking_status != "pending":
+            return Response({"error": "Booking already processed."}, status=400)
+        message = "Booking approved and seats booked." if approve else "Booking rejected and seats cleared."
+        with transaction.atomic():
+            segments = bookride.segments.all()
+
+            if approve:
+                for segment in segments:
+                    if segment.status != "vacant":
+                        return Response({
+                            "success": False,
+                            "message": f"Segment {segment.id} is already booked."
+                        }, status=status.HTTP_400_BAD_REQUEST)
+
+                for segment in segments:
+                    segment.status = "booked"
+                    segment.booked_by = bookride.user
+                    segment.booked_by_booking = bookride
+                    segment.save()
+
+                bookride.booking_status = "active"
+                bookride.save()
+
+            else:
+
+                for segment in segments:
+                    segment.status = "vacant"
+                    segment.booked_by = None
+                    segment.booked_by_booking = None
+                    segment.save()
+
+                bookride.booking_status = "reject"
+                bookride.save()
+                bookride.seat_segments.clear()  
+
+        return Response({"success": True, "message": message},status=status.HTTP_200_OK)
+        
         

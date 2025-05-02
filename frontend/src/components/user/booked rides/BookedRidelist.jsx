@@ -21,7 +21,7 @@ export default function BookedRidelist() {
             }
         }
         handleEffect(user?.user?.id,status===true?"active":"pending")
-    }, [status])
+    }, [user?.user?.id,status])
 
 
 
