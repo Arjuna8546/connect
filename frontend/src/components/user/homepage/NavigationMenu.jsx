@@ -36,7 +36,7 @@ const NavigationMenu = () => {
     {
       icon: DiscourseIcon,
       label: "inbox",
-      onClick: () => console.log("Inbox clicked"),
+      onClick: () => nav('/chat'),
     },
     {
       icon: ProfileIcon,

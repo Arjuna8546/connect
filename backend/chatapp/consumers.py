@@ -31,15 +31,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         self.conversation_id = self.scope['url_route']['kwargs']['conversation_id']
         self.room_group_name = f'chat_{self.conversation_id}'
-
+        self.scope['conversation_id'] = self.conversation_id
+        
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
         )
 
         await self.accept()
-
-        curr_users = cache.get('chat:online_users', [])
+        ONLINE_USERS = f'chat:online_users_{self.conversation_id}'
+        curr_users = cache.get(ONLINE_USERS, [])
 
         new_user = {
             "id": self.user.id,
@@ -49,7 +50,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if new_user not in curr_users:
             curr_users.append(new_user)
 
-        cache.set('chat:online_users', curr_users, timeout=None)
+        cache.set(ONLINE_USERS, curr_users, timeout=None)
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -64,11 +65,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         if hasattr(self, 'room_group_name'):
             user = self.scope["user"]
-            curr_users = cache.get('chat:online_users', [])
+            conversation_id = self.scope["conversation_id"]
+            ONLINE_USERS = f'chat:online_users_{conversation_id}'
+            curr_users = cache.get(ONLINE_USERS, [])
 
             curr_users = [u for u in curr_users if u['id'] != user.id]
 
-            cache.set('chat:online_users', curr_users, timeout=None)
+            cache.set(ONLINE_USERS, curr_users, timeout=None)
 
             await self.channel_layer.group_send(
                 self.room_group_name,
