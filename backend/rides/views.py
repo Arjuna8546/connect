@@ -11,6 +11,7 @@ from django.db.models import Q
 from datetime import datetime, timedelta
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from collections import defaultdict
 
 from .serializer import RideSerializer
 
@@ -151,23 +152,17 @@ class RideSearchView(APIView):
         except (ValueError, TypeError):
             return Response({"error": "Passenger count must be a number."}, status=status.HTTP_400_BAD_REQUEST)
 
-        rides = Ride.objects.filter(
-            date=date,
-            passenger_count__gte=passenger_count
-        )
-        
+        filters = Q(date=date) & Q(passenger_count__gte=passenger_count)
         if gender:
-            rides = rides.filter(user_id__gender=gender)
-        
+            filters &= Q(user_id__gender=gender)
         if min_price:
-            rides = rides.filter(price__gte=min_price)
-            
+            filters &= Q(price__gte=min_price)
         if max_price:
-            rides = rides.filter(price__lte=max_price)
-         
-        if instant_booking:
-            if instant_booking=="true":
-                rides = rides.filter(instant_booking=True)       
+            filters &= Q(price__lte=max_price)
+        if instant_booking == "true":
+            filters &= Q(instant_booking=True)
+
+        rides = Ride.objects.filter(filters).select_related("user").prefetch_related("stopover_prices")       
         
         rides = rides.filter(
             (
@@ -220,8 +215,8 @@ class RideSearchView(APIView):
         except Ride.DoesNotExist:
             return Response({"detail": "Ride not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        seat_queryset = Seat.objects.filter(ride=ride).order_by('seat_number')
-        seat_map = {}
+        seat_queryset = Seat.objects.filter(ride=ride).select_related("booked_by").order_by("seat_number")
+        seat_map = defaultdict(lambda: {"seat_number": None, "segments": []})
 
         for seat in seat_queryset:
             sn = seat.seat_number
@@ -267,6 +262,19 @@ class RideBook(APIView):
                 }, status=status.HTTP_404_NOT_FOUND)
 
             segment_ids = list(map(int, segment_ids))  
+            
+            existing_bookings = BookRide.objects.filter(
+                user=user,
+                segments__in=segment_ids,
+                booking_status__in=["pending", "active"]
+            ).distinct()
+
+            if existing_bookings.exists():
+                return Response({
+                    "success": False,
+                    "message": "You have already requested or booked some of these segments."
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
             seats = Seat.objects.select_related("ride").filter(id__in=segment_ids, status="vacant")
 
             if seats.count() != len(segment_ids):
@@ -332,6 +340,7 @@ class RideBook(APIView):
                         booked_by=user,
                         booked_by_booking=bookride
                     )
+                    bookride.segments.set(seats)
                 else:
                     bookride.segments.set(seats) 
 

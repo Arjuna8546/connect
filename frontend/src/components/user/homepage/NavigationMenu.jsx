@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteUser, deleteVehicles } from "../../../store/slices/UserSlice";
 import toast from "react-hot-toast";
+import { disconnectSocket } from "../../../service/webSocket";
 
 
 
@@ -60,6 +61,7 @@ const NavigationMenu = () => {
           dispatch(deleteVehicles());
           localStorage.removeItem("user_id")
           nav("/login");
+          disconnectSocket()
           toast.success("logged out successfully")
         },
       }

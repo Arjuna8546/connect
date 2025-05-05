@@ -100,10 +100,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 conversation = await self.get_conversation(self.conversation_id)
                 from .serializer import UserListSerializer
                 user_data = UserListSerializer(user).data
-
                 message = await self.save_message(conversation, user, message_content)
-                
-
                 await self.channel_layer.group_send(
                     self.room_group_name,
                     {
@@ -252,3 +249,58 @@ class ChatConsumer(AsyncWebsocketConsumer):
             raise PermissionDenied("You can't delete this message")
         message.delete()
         return True
+
+
+class UserConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.user_id = self.scope["url_route"]["kwargs"]["user_id"]
+        self.user_group_name = f'user_{self.user_id}'
+
+        await self.channel_layer.group_add(
+            self.user_group_name,
+            self.channel_name
+        )
+
+        await self.accept()
+               
+        ONLINE_USERS = f'chat:online_users'
+        curr_users = cache.get(ONLINE_USERS, [])
+        self.user = await self.get_user(self.user_id)
+
+        self.scope['user'] = self.user
+
+        new_user = {
+            "id": self.user.id,
+            "username": self.user.username
+        }
+
+        if new_user not in curr_users:
+            curr_users.append(new_user)
+        cache.set(ONLINE_USERS, curr_users, timeout=None)
+
+    async def disconnect(self, close_code):
+        
+        user = self.scope["user"]
+        ONLINE_USERS = f'chat:online_users'
+        curr_users = cache.get(ONLINE_USERS, [])
+
+        curr_users = [u for u in curr_users if u['id'] != user.id]
+        cache.set(ONLINE_USERS, curr_users, timeout=None)
+        
+        await self.channel_layer.group_discard(
+            self.user_group_name,
+            self.channel_name
+        )
+
+    async def notification(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "notification",
+            "message": event["message"]
+        }))
+        
+    @database_sync_to_async
+    def get_user(self, user_id): 
+        from base.models import Users
+        return Users.objects.get(id=user_id)
+    
+    

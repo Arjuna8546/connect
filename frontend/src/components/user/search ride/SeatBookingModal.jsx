@@ -6,65 +6,78 @@ const SeatBookingModal = ({ seatData, onBook, onClose, users }) => {
     const handleSegmentClick = (seatNumber, segment, segmentIndex, seat) => {
         if (segment.status !== "vacant") return;
 
+        const segmentId = segment.segment_id;
+
         if (selectedSeats.length > 0 && selectedSeats[0].seatNumber !== seatNumber) {
             setSelectedSeats([{
                 seatNumber,
-                indices: [segmentIndex],
+                segmentIds: [segmentId],
             }]);
             return;
-        } 
+        }
+
         const existing = selectedSeats.find(sel => sel.seatNumber === seatNumber);
         if (!existing) {
             setSelectedSeats([{
                 seatNumber,
-                indices: [segmentIndex],
+                segmentIds: [segmentId],
             }]);
             return;
         }
-    
-        const indices = existing.indices;
+
+        const indices = existing.segmentIds.map(id =>
+            seat.segments.findIndex(seg => seg.segment_id === id)
+        ).sort((a, b) => a - b);
+
         const lastIndex = indices[indices.length - 1];
-    
+
         let updatedSeats = [];
 
         if (segmentIndex === lastIndex + 1 && seat.segments[segmentIndex].status === "vacant") {
+            const newSegmentIds = [...existing.segmentIds, segmentId];
             updatedSeats.push({
                 seatNumber,
-                indices: [...indices, segmentIndex],
+                segmentIds: newSegmentIds,
             });
         } else {
             updatedSeats.push({
                 seatNumber,
-                indices: [segmentIndex],
+                segmentIds: [segmentId],
             });
         }
-    
+
         setSelectedSeats(updatedSeats);
     };
-    
+
     const handleBooking = () => {
         if (selectedSeats.length > 0) {
             const bookingDetails = selectedSeats.map(sel => {
                 const seat = seatData.find(s => s.seat_number === sel.seatNumber);
-                const fromSegment = seat.segments[sel.indices[0]];
-                const toSegment = seat.segments[sel.indices[sel.indices.length - 1]];
+                const selectedSegments = seat.segments
+                    .filter(segment => sel.segmentIds.includes(segment.segment_id))
+                    .sort((a, b) => a.segment_id - b.segment_id);
 
-                const segment_ids = sel.indices.map(index => seat.segments[index].segment_id);
+                const fromSegment = selectedSegments[0];
+                const toSegment = selectedSegments[selectedSegments.length - 1];
 
                 return {
                     seatNumber: sel.seatNumber,
                     from: fromSegment.from,
                     to: toSegment.to,
-                    segment_ids: segment_ids,
+                    segment_ids: sel.segmentIds,
                 };
             });
 
             onBook(bookingDetails);
-
             setSelectedSeats([]);
             onClose();
         }
     };
+
+    const sortedSeatData = seatData.map(seat => ({
+        ...seat,
+        segments: [...seat.segments].sort((a, b) => a.segment_id - b.segment_id),
+    }));
 
     return (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
@@ -72,18 +85,14 @@ const SeatBookingModal = ({ seatData, onBook, onClose, users }) => {
                 className="bg-[#0e0e0e] text-white rounded-2xl p-6 max-w-7xl overflow-y-auto max-h-[90vh] shadow-xl border border-gray-700 space-y-8"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
-                <style>{`
-                    div::-webkit-scrollbar {
-                        display: none;
-                    }
-                `}</style>
+                <style>{`div::-webkit-scrollbar { display: none; }`}</style>
 
                 <h2 className="text-2xl md:text-3xl font-bold text-center">Seat Booking</h2>
 
                 <div className="bg-gray-800 max-w-2xl p-4 rounded-lg text-sm font-medium text-gray-300 mb-4">
                     <h4 className="font-semibold text-xl mb-2">Route Preview</h4>
                     <ul>
-                        {seatData && seatData[0]?.segments.map((segment, index) => (
+                        {sortedSeatData[0]?.segments.map((segment, index) => (
                             <li key={index} className="mb-2">
                                 <div className="flex items-center">
                                     <span className="font-semibold text-gray-200">{segment?.from}</span>
@@ -98,33 +107,36 @@ const SeatBookingModal = ({ seatData, onBook, onClose, users }) => {
                     </ul>
                 </div>
 
-                {seatData.map((seat) => (
+                {sortedSeatData.map((seat) => (
                     <div key={seat.seat_number} className="space-y-3">
                         <h3 className="text-lg font-semibold">Seat {seat.seat_number}</h3>
 
                         <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
                             {seat.segments.map((segment, idx) => {
                                 const isSelected = selectedSeats.some(
-                                    sel => sel.seatNumber === seat.seat_number && sel.indices.includes(idx)
+                                    sel => sel.seatNumber === seat.seat_number &&
+                                        sel.segmentIds.includes(segment.segment_id)
                                 );
 
                                 const bgColor =
                                     segment.status === "booked"
                                         ? "bg-red-500"
                                         : isSelected
-                                            ? "bg-yellow-400 text-black"
-                                            : "bg-green-500";
+                                            ? "bg-[#9b87f5] text-white"
+                                            : "bg-white text-black";
 
                                 return (
                                     <div
                                         key={idx}
                                         className={`min-w-[130px] px-4 py-2 rounded-xl flex flex-col items-center justify-center text-sm font-medium border border-white/20 shadow-md transition duration-200 ${bgColor} ${segment.status === "vacant" ? "cursor-pointer hover:scale-105" : "opacity-80"}`}
-                                        onClick={() => handleSegmentClick(seat.seat_number, segment, idx, seat)}
+                                        onClick={segment.status === "vacant"
+                                            ? () => handleSegmentClick(seat.seat_number, segment, idx, seat)
+                                            : undefined}
                                     >
                                         <div className="whitespace-nowrap">{segment.from_short} → {segment.to_short}</div>
                                         {segment.status === "booked" && (
                                             <div className="mt-1 px-2 py-1 text-xs rounded-full bg-white text-black font-semibold shadow-inner">
-                                                {segment.booked_by.username || "Unknown"}
+                                                {segment.booked_by?.username || "Unknown"}
                                             </div>
                                         )}
                                     </div>

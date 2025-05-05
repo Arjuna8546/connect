@@ -74,3 +74,5 @@ class MessageDetailAPIView(APIView):
         message = get_object_or_404(Message, pk=pk, conversation__id=conversation_id)
         serializer = MessageSerializer(message)
         return Response(serializer.data)
+
+
