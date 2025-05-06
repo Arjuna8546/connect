@@ -1,4 +1,5 @@
 export default function ApprovedRequestModal({ request = [], onClose, onApprove, onReject }) {
+  console.log(request)
     return (
       <div className="fixed inset-0 z-50 bg-black/40 flex justify-center items-center overflow-y-auto px-4">
         <div className="bg-white rounded-2xl shadow-lg w-full max-w-4xl p-6 relative max-h-[90vh] overflow-y-auto">
@@ -21,10 +22,10 @@ export default function ApprovedRequestModal({ request = [], onClose, onApprove,
   
                 {/* User Info */}
                 <div className="flex items-center gap-4 mb-4">
-                  <img src={req.user.users.profileImage} alt="Profile" className="w-14 h-14 rounded-full object-cover border" />
+                  <img src={req.user.profileImage} alt="Profile" className="w-14 h-14 rounded-full object-cover border" />
                   <div>
-                    <p className="text-lg font-medium">{req.user.users.name}</p>
-                    <p className="text-sm text-gray-500 capitalize">{req.user.users.gender}</p>
+                    <p className="text-lg font-medium">{req.user.name}</p>
+                    <p className="text-sm text-gray-500 capitalize">{req.user.gender}</p>
                   </div>
                 </div>
   

@@ -16,7 +16,7 @@ const BookedRide = () => {
         href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"
       />
       <Navigation />
-      <main className="h-screen  bg-black ">
+      <main className="h-full  bg-black ">
         
         <BookedRidelist/>
       </main>

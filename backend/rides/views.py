@@ -4,7 +4,8 @@ from rest_framework import status
 from rest_framework import permissions
 
 from base.models import Users
-from .models import Ride,Seat,BookRide,StopOvers
+from .models import Ride,Seat,BookRide,StopOvers,SeatRequest
+from chatapp.models import Conversation,Message,Notification
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.db.models import Q
@@ -14,6 +15,12 @@ from django.shortcuts import get_object_or_404
 from collections import defaultdict
 
 from .serializer import RideSerializer
+
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+import json
+from django.utils import timezone
+from django.core.cache import cache
 
 
 class PostRide(APIView):
@@ -41,7 +48,7 @@ class PostRide(APIView):
 
             for booking in bookings:
                 user = booking.user
-                segments = Seat.objects.filter(booked_by_booking=booking).order_by('id')
+                segments = booking.seat_segments.all().order_by('id')
 
                 if segments.exists():
                     from_location = segments.first().from_location
@@ -215,7 +222,7 @@ class RideSearchView(APIView):
         except Ride.DoesNotExist:
             return Response({"detail": "Ride not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        seat_queryset = Seat.objects.filter(ride=ride).select_related("booked_by").order_by("seat_number")
+        seat_queryset = Seat.objects.filter(ride=ride).order_by("seat_number")
         seat_map = defaultdict(lambda: {"seat_number": None, "segments": []})
 
         for seat in seat_queryset:
@@ -225,6 +232,9 @@ class RideSearchView(APIView):
                     "seat_number": sn,
                     "segments": []
                 }
+                
+            seat_request = seat.seatrequest_set.filter(status__in=["approved"]).first()
+            booked_by_username = seat_request.user.username if seat_request else None
             
             segment = {
                 "segment_id": seat.id,
@@ -234,8 +244,8 @@ class RideSearchView(APIView):
                 "to_short": seat.to_short,
                 "status": seat.status,
                 "booked_by": {
-                    "username": seat.booked_by.username,
-                }if seat.booked_by else None
+                    "username": booked_by_username,
+                }if booked_by_username else None
 
             }
             seat_map[sn]["segments"].append(segment)
@@ -265,7 +275,7 @@ class RideBook(APIView):
             
             existing_bookings = BookRide.objects.filter(
                 user=user,
-                segments__in=segment_ids,
+                seat_segments__in=segment_ids,
                 booking_status__in=["pending", "active"]
             ).distinct()
 
@@ -322,6 +332,7 @@ class RideBook(APIView):
 
             with transaction.atomic():
                 booking_status = "active" if ride.instant_booking else "pending"
+                seat_status = "approved" if ride.instant_booking else "pending"
                 message = "segments booked successfully." if ride.instant_booking else "segments booking Requested."
                 bookride = BookRide(
                     user=user,
@@ -337,12 +348,37 @@ class RideBook(APIView):
                 if ride.instant_booking:
                     seats.update(
                         status="booked",
-                        booked_by=user,
-                        booked_by_booking=bookride
                     )
-                    bookride.segments.set(seats)
-                else:
-                    bookride.segments.set(seats) 
+                    bookride.seat_segments.set(seats)
+                
+                for seat in seats:
+                    SeatRequest.objects.create(
+                        user=user,
+                        ride=ride,
+                        seat=seat,
+                        status=seat_status
+                    )
+                bookride.seat_segments.set(seats) 
+                
+                conversation =existing_conversation = Conversation.objects.filter(participants=user)\
+                                            .filter(participants=ride.user)\
+                                            .first()
+                
+                if not existing_conversation:
+                    conversation = Conversation.objects.create()
+                    conversation.participants.add(user, ride.user)
+                    
+                user_display_name = user.username  
+                content = (
+                    f"User {user_display_name} has requested for ride."
+                    if booking_status == "pending"
+                    else f"User {user_display_name} booked the ride."
+                )
+                Message.objects.create(
+                    conversation=conversation,
+                    sender=user,
+                    content=content
+                )               
 
             return Response({
                 "success": True,
@@ -361,21 +397,21 @@ class RideBook(APIView):
     def get(self, request, user_id):
         user = get_object_or_404(Users, id=user_id)
         stats = request.GET.get('status', 'active')
-        bookings = BookRide.objects.filter(Q(user=user)&Q(booking_status=stats)).select_related('ride__user', 'ride__vehicle')
+
+        bookings = BookRide.objects.filter(
+            Q(user=user) & Q(booking_status=stats)
+        ).select_related('ride__user', 'ride__vehicle')
 
         booking_list = []
 
         for booking in bookings:
-            seat = booking.segments.first()
             ride = booking.ride
             rider = ride.user
             vehicle = ride.vehicle
-            
-            form_time = StopOvers.objects.filter(stop=booking.from_loc_name)
-            
+
             booking_list.append({
                 "id": booking.id,
-                "from":booking.from_loc_name,
+                "from": booking.from_loc_name,
                 "to": booking.to_loc_name,
                 "pickup_time": f"{ride.date}T{ride.time}",
                 "price": str(booking.price),
@@ -384,7 +420,7 @@ class RideBook(APIView):
                     "rider": {
                         "name": rider.username,
                         "gender": rider.gender,
-                        "profileImage": rider.profile_url if rider.profile_url else ""
+                        "profileImage": rider.profile_url or ""
                     },
                     "vehicle": {
                         "type": vehicle.vehicle_type,
@@ -395,26 +431,26 @@ class RideBook(APIView):
             })
 
         return Response({
-                "success": True,
-                "data":booking_list
-            }, status=status.HTTP_200_OK)
+            "success": True,
+            "data": booking_list
+        }, status=status.HTTP_200_OK)
+
         
 class ApproveRide(APIView):
-    def get(self,request,ride_id):
-        
-        ride = get_object_or_404(Ride,id=ride_id)
+    def get(self, request, ride_id):
+        ride = get_object_or_404(Ride, id=ride_id)
         allbookings = BookRide.objects.filter(ride=ride, booking_status="pending")
-        
+
         approve_list = []
-        
-        for bookings in allbookings:
-            user = bookings.user
+
+        for booking in allbookings:
+            user = booking.user
             approve_list.append({
-                "id": bookings.id,
-                "from":bookings.from_loc_name,
-                "to": bookings.to_loc_name,
+                "id": booking.id,
+                "from": booking.from_loc_name,
+                "to": booking.to_loc_name,
                 "pickup_time": f"{ride.date}T{ride.time}",
-                "price": str(bookings.price),
+                "price": str(booking.price),
                 "seat_segments": [
                     {
                         "id": seat.id,
@@ -423,62 +459,119 @@ class ApproveRide(APIView):
                         "to": seat.to_short,
                         "status": seat.status
                     }
-                    for seat in bookings.segments.all()
-                    ],
+                    for seat in booking.seat_segments.all()
+                ],
+                
                 "user": {
                     "id": user.id,
-                    "users": {
-                        "name": user.username,
-                        "gender": user.gender,
-                        "profileImage": user.profile_url if user.profile_url else ""
-                    }
+                    "name": user.username,
+                    "gender": user.gender,
+                    "profileImage": user.profile_url or ""
                 }
             })
-            
-        return Response({"success":True,"data":approve_list},status=status.HTTP_200_OK)
+
+        return Response({"success": True, "data": approve_list}, status=200)
     
-    def post(self,request):
-        
+    def post(self, request):
         book_ride_id = request.data.get("book_ride_id")
         approve = request.data.get("approve")
-        
-        bookride = get_object_or_404(BookRide,id=book_ride_id)
-        
+
+        if book_ride_id is None or approve is None:
+            return Response({"error": "Missing 'book_ride_id' or 'approve' field."}, status=400)
+
+        bookride = get_object_or_404(BookRide, id=book_ride_id)
+
         if bookride.booking_status != "pending":
             return Response({"error": "Booking already processed."}, status=400)
+
         message = "Booking approved and seats booked." if approve else "Booking rejected and seats cleared."
+
         with transaction.atomic():
-            segments = bookride.segments.all()
+            seats = bookride.seat_segments.all()
+            user = bookride.user
+            ride = bookride.ride
 
             if approve:
-                for segment in segments:
-                    if segment.status != "vacant":
+                for seat in seats:
+                    if seat.status != "vacant":
                         return Response({
                             "success": False,
-                            "message": f"Segment {segment.id} is already booked."
-                        }, status=status.HTTP_400_BAD_REQUEST)
+                            "message": f"Seat segment {seat.id} is already booked."
+                        }, status=400)
 
-                for segment in segments:
-                    segment.status = "booked"
-                    segment.booked_by = bookride.user
-                    segment.booked_by_booking = bookride
-                    segment.save()
+                for seat in seats:
+
+                    seat.status = "booked"
+                    seat.save()
+
+                    SeatRequest.objects.filter(
+                        user=user, ride=ride, seat=seat
+                    ).update(status="approved")
 
                 bookride.booking_status = "active"
                 bookride.save()
+                ONLINE_USERS = f'chat:online_users'
+                curr_users = cache.get(ONLINE_USERS, []) 
+                if user.id in [user["id"] for user in curr_users]:
+                    channel_layer = get_channel_layer()
+                    data = {
+                        'type': 'notification',
+                        'message': {
+                            'sender': ride.user.username,
+                            'content': f"{ride.user.username} Approved booked ride",
+                        }
+                    }
+                        
+                    async_to_sync(channel_layer.group_send)(
+                        f'user_{user.id}',
+                        data
+                    )
+                else:
+                   Notification.objects.create(
+                        sender=ride.user,
+                        receiver=user,
+                        message=f"{ride.user.username} Approved booked ride",
+                    ) 
+                
+                
+            if not approve:
+                for seat in seats:
 
-            else:
+                    seat.status = "vacant"
+                    seat.save()
 
-                for segment in segments:
-                    segment.status = "vacant"
-                    segment.booked_by = None
-                    segment.booked_by_booking = None
-                    segment.save()
+                    SeatRequest.objects.filter(
+                        user=user, ride=ride, seat=seat
+                    ).update(status="rejected")
 
-                bookride.booking_status = "reject"
+                bookride.booking_status = "cancelled"
                 bookride.save()
-                bookride.seat_segments.clear()  
+                
+                ONLINE_USERS = f'chat:online_users'
+                curr_users = cache.get(ONLINE_USERS, []) 
+                if user.id in [user["id"] for user in curr_users]:
+                    channel_layer = get_channel_layer()
+                    data = {
+                        'type': 'notification',
+                        'message': {
+                            'sender': ride.user.username,
+                            'content': f"{ride.user.username} Rejected booked ride",
+                        }
+                    }
+                    
+                    async_to_sync(channel_layer.group_send)(
+                        f'user_{user.id}',
+                        data
+                    )
+                else:
+                   Notification.objects.create(
+                        sender=ride.user,
+                        receiver=user,
+                        message=f"{ride.user.username} Rejected booked ride",
+                    )
 
-        return Response({"success": True, "message": message},status=status.HTTP_200_OK)
+                bookride.seat_segments.clear()
+
+        return Response({"success": True, "message": message}, status=status.HTTP_200_OK)
         
         

@@ -26,7 +26,7 @@ export default function BookedRidelist() {
 
 
     return (
-        <section className="px-20 py-12  max-md:p-10 max-sm:p-5">
+        <section className="px-20 py-12 h-full max-md:p-10 max-sm:p-5">
             <div className="flex justify-between items-center mb-5">
                 <h2 className="text-2xl font-bold text-white">My Booked Rides</h2>
                 <button

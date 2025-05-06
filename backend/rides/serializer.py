@@ -80,7 +80,7 @@ class RideSerializer(GeoFeatureModelSerializer):
                     to_short=stop_points[i + 1]["short"],
                     to_point=stop_points[i + 1]["point"],
                     status="vacant",
-                    booked_by=None
+                    
                 )
 
         return ride

@@ -3,7 +3,7 @@ from channels_redis.core import RedisChannelLayer
 import json 
 import jwt 
 from channels.generic.websocket import AsyncWebsocketConsumer
-
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from urllib.parse import parse_qs
 from django.core.exceptions import PermissionDenied
@@ -264,7 +264,7 @@ class UserConsumer(AsyncWebsocketConsumer):
         await self.accept()
                
         ONLINE_USERS = f'chat:online_users'
-        curr_users = cache.get(ONLINE_USERS, [])
+        curr_users = await sync_to_async(cache.get)(ONLINE_USERS, [])
         self.user = await self.get_user(self.user_id)
 
         self.scope['user'] = self.user
@@ -276,16 +276,18 @@ class UserConsumer(AsyncWebsocketConsumer):
 
         if new_user not in curr_users:
             curr_users.append(new_user)
-        cache.set(ONLINE_USERS, curr_users, timeout=None)
+            await sync_to_async(cache.set)(ONLINE_USERS, curr_users, timeout=None)
+        
+        await self.send_unsent_notifications()
 
     async def disconnect(self, close_code):
         
         user = self.scope["user"]
         ONLINE_USERS = f'chat:online_users'
-        curr_users = cache.get(ONLINE_USERS, [])
+        curr_users = await sync_to_async(cache.get)(ONLINE_USERS, [])
 
         curr_users = [u for u in curr_users if u['id'] != user.id]
-        cache.set(ONLINE_USERS, curr_users, timeout=None)
+        await sync_to_async(cache.set)(ONLINE_USERS, curr_users, timeout=None)
         
         await self.channel_layer.group_discard(
             self.user_group_name,
@@ -302,5 +304,28 @@ class UserConsumer(AsyncWebsocketConsumer):
     def get_user(self, user_id): 
         from base.models import Users
         return Users.objects.get(id=user_id)
+    
+    async def send_unsent_notifications(self):
+        notifications = await self.get_user_notifications(self.user)
+        for n in notifications:
+            await self.send(text_data=json.dumps({
+                "type": "notification",
+                "message": {
+                    "sender": n.sender.username,
+                    "content": n.message,
+                    "timestamp": n.timestamp.isoformat(),
+                }
+            }))
+        await self.clear_user_notifications(self.user)
+
+    @database_sync_to_async
+    def get_user_notifications(self, user):
+        from .models import Notification
+        return list(Notification.objects.filter(receiver=user).select_related('sender'))
+
+    @database_sync_to_async
+    def clear_user_notifications(self, user):
+        from .models import Notification
+        Notification.objects.filter(receiver=user).delete()
     
     

@@ -104,20 +104,6 @@ class Seat(models.Model):
     to_point = models.PointField(geography=True, spatial_index=True)
 
     status = models.CharField(max_length=20,choices=STATUS_CHOICE,default="vacant")
-    booked_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="booked_segments"
-    )
-    booked_by_booking = models.ForeignKey(
-        "BookRide",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="segments"
-    )
 
     def __str__(self):
         return f"Seat {self.seat_number} - {self.from_short} to {self.to_short} (Ride {self.ride.id})"
@@ -125,3 +111,20 @@ class Seat(models.Model):
     class Meta:
         verbose_name = "Seat Segment"
         verbose_name_plural = "Seat Segments"
+        
+class SeatRequest(models.Model):
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    ride = models.ForeignKey("Ride", on_delete=models.CASCADE)
+    seat = models.ForeignKey("Seat", on_delete=models.CASCADE)
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    requested_time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} requested Seat {self.seat.id} for Ride {self.ride.id} - {self.status}"

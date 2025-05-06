@@ -26,7 +26,7 @@ export default function RideCard({
 
 {
   return (
-    <article className="w-full py-10 px-6 md:px-14 mx-auto rounded-2xl border border-stone-800 shadow-2xl bg-[#0e0e0e] mb-8 transition hover:shadow-white/35 animate-fade-in relative overflow-hidden flex flex-col gap-7">
+    <article className="w-full py-10 px-6 md:px-14 mx-auto rounded-2xl border border-stone-800 shadow-2xl bg-[#0e0e0e] mb-8 transition hover:shadow-purple-500/30  animate-fade-in relative overflow-hidden flex flex-col gap-7">
 
       <div className="w-full flex flex-col border-b border-gray-700 pb-6">
         <div className="flex items-center justify-between w-full flex-wrap gap-4">
