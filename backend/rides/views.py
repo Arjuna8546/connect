@@ -21,6 +21,8 @@ from asgiref.sync import async_to_sync
 import json
 from django.utils import timezone
 from django.core.cache import cache
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 class PostRide(APIView):
@@ -33,11 +35,12 @@ class PostRide(APIView):
 
     def get(self, request, user_id):
         try:
+            stats = request.GET.get('status', 'active')
             user = Users.objects.get(id=user_id)
         except Users.DoesNotExist:
             return Response({"success": False, "message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        rides = Ride.objects.filter(user=user).select_related('vehicle', 'user').prefetch_related('stopover_prices')
+        rides = Ride.objects.filter(user=user,status=stats).select_related('vehicle', 'user').prefetch_related('stopover_prices')
 
         ride_data = []
 
@@ -79,7 +82,7 @@ class PostRide(APIView):
                 "to": ride.destination_location_name.upper(),
                 "duration": ride.duration,
                 "date": formatted_date,
-                "status": "start",
+                "status": ride.status,
                 "passengers": ride.passenger_count,
                 "vehicle": {
                     "type": ride.vehicle.vehicle_type,
@@ -110,6 +113,61 @@ class PostRide(APIView):
             "success": True,
             "rides": ride_data
         }, status=status.HTTP_200_OK)
+        
+    def delete(self, request, ride_id):
+        try:
+            ride = Ride.objects.get(id=ride_id)
+        except Ride.DoesNotExist:
+            return Response({"error": "Ride not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user != ride.user and not request.user.role=="admin":
+            return Response({"error": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
+        ride.delete()
+        return Response({"success": True, "message": "Ride deleted successfully."}, status=status.HTTP_200_OK)
+    
+    def patch(self, request):
+        ride_id = request.data.get("ride_id")
+        reason = request.data.get("reason")
+        
+        if not (ride_id and reason):
+            return Response({"error": "Missing required fields."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        book_rides = BookRide.objects.filter(Q(ride__id=ride_id) & Q(booking_status="active"))
+
+        user_messages = defaultdict(list)
+        
+        Ride.objects.filter(id=ride_id).update(status="cancelled")
+
+        for booking in book_rides:
+            user = booking.user
+            message = (
+
+                f"{booking.from_loc_name} to {booking.to_loc_name} "
+
+            )
+            user_messages[user].append(message)
+
+        for user, messages in user_messages.items():
+
+            ride_list = "\n".join([f"- {msg}" for msg in messages])
+            
+            subject = "Apology: Your Booked Ride(s) Have Been Cancelled"
+            message = (
+                f"Dear {user.username},\n\n"
+                f"We sincerely apologize, but the following ride(s) you booked have been cancelled:\n\n"
+                f"{ride_list}\n\n"
+                f"Reason for cancellation: {reason}.\n"
+                f"We regret the inconvenience caused and appreciate your understanding.\n\n"
+                f"Best regards,\n"
+                f"The RideShare Team"
+            )
+
+            send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email], fail_silently=False)
+                
+        
+        return Response({"success": True, "message": "Ride Canceled."}, status=status.HTTP_200_OK)
+
 
 def parse_duration(duration_str):
     hours = 0
@@ -138,6 +196,9 @@ class RideSearchView(APIView):
         min_price = request.GET.get("minPrice")
         max_price = request.GET.get("maxPrice")
         instant_booking = request.GET.get("instantBooking")
+        
+        if date<str(datetime.now().date()):
+            return Response({"error": "Cannot search previous rides."}, status=status.HTTP_400_BAD_REQUEST)
 
         if not (start_point and end_point and date and passenger_count):
             return Response({"error": "Missing required fields."}, status=status.HTTP_400_BAD_REQUEST)
@@ -159,7 +220,7 @@ class RideSearchView(APIView):
         except (ValueError, TypeError):
             return Response({"error": "Passenger count must be a number."}, status=status.HTTP_400_BAD_REQUEST)
 
-        filters = Q(date=date) & Q(passenger_count__gte=passenger_count)
+        filters = Q(date=date) & Q(passenger_count__gte=passenger_count) &Q(status='active')
         if gender:
             filters &= Q(user_id__gender=gender)
         if min_price:
@@ -329,6 +390,17 @@ class RideBook(APIView):
 
             else:
                 raise ValueError("Invalid stop combination.")
+            
+            stop = StopOvers.objects.filter(stop=from_loc_name).first()
+            if stop:
+                parse_time=parse_duration(stop.duration)
+                ride_datetime = datetime.combine(datetime.today(), ride.time)  
+                final_datetime = ride_datetime + parse_time  
+                time = final_datetime.time()
+                
+            else:
+                time = ride.time
+                
 
             with transaction.atomic():
                 booking_status = "active" if ride.instant_booking else "pending"
@@ -341,7 +413,9 @@ class RideBook(APIView):
                     payment_status="pending",
                     booking_status=booking_status,
                     from_loc_name=from_loc_name,
+                    pickup_time=time,
                     to_loc_name=to_loc_name,
+                    
                 )
                 bookride.save()
 
@@ -413,10 +487,11 @@ class RideBook(APIView):
                 "id": booking.id,
                 "from": booking.from_loc_name,
                 "to": booking.to_loc_name,
-                "pickup_time": f"{ride.date}T{ride.time}",
+                "pickup_time": f"{ride.date}T{booking.pickup_time}",
                 "price": str(booking.price),
                 "ride": {
                     "id": ride.id,
+                    "status":ride.status,
                     "rider": {
                         "name": rider.username,
                         "gender": rider.gender,
@@ -573,5 +648,4 @@ class ApproveRide(APIView):
                 bookride.seat_segments.clear()
 
         return Response({"success": True, "message": message}, status=status.HTTP_200_OK)
-        
         

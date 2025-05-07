@@ -1,8 +1,15 @@
 from django.contrib.gis.db import models
 from base.models import Users,Vehicles
 from django.conf import settings
+from datetime import time
 
 class Ride(models.Model):
+    RIDE_STATUS_CHOICE =[
+        ("active", "Active"),
+        ("pending","Pending"),
+        ("cancelled", "Cancelled"),
+        ("completed", "Completed"),
+    ]
     user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name="rides", db_index=True)
     vehicle = models.ForeignKey(Vehicles, on_delete=models.CASCADE, related_name="rides", db_index=True)
     
@@ -30,6 +37,8 @@ class Ride(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    status = models.CharField(max_length=20,choices=RIDE_STATUS_CHOICE,default="active")
     
     class Meta:
         indexes = [
@@ -70,7 +79,7 @@ class BookRide(models.Model):
         ("paid", "Paid"),
         ("failed", "Failed"),
     ], default="pending")
-
+    pickup_time = models.TimeField(default=time(0, 0))
     booking_status = models.CharField(max_length=20, choices=[
         ("active", "Active"),
         ("pending","Pending"),

@@ -1,5 +1,4 @@
 export default function ApprovedRequestModal({ request = [], onClose, onApprove, onReject }) {
-  console.log(request)
     return (
       <div className="fixed inset-0 z-50 bg-black/40 flex justify-center items-center overflow-y-auto px-4">
         <div className="bg-white rounded-2xl shadow-lg w-full max-w-4xl p-6 relative max-h-[90vh] overflow-y-auto">

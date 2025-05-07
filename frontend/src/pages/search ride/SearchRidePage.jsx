@@ -5,6 +5,7 @@ import { SearchBar } from "../../components/user/homepage/SearchBar";
 import FilterPanel from "../../components/user/search ride/FilterPanel";
 import RideList from "../../components/user/search ride/RideList";
 import { search } from "../../Endpoints/APIs";
+import toast from "react-hot-toast";
 
 const RideSearchPage = () => {
   const [filters, setFilters] = useState({
@@ -34,7 +35,7 @@ const RideSearchPage = () => {
         setRides(res?.data?.data || []);
       }
     } catch (err) {
-      console.error("Error fetching rides:", err);
+      toast.error(err?.response?.data?.error)
     }
   };
   

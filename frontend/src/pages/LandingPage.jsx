@@ -20,7 +20,7 @@ export const LandingPage = () => {
       <Navigation />
       <main className="flex-1">
         <HeroSection />
-        <SearchBar handleClick={handleSearch} />
+        {/* <SearchBar handleClick={handleSearch} /> */}
         <AboutSection />
         <NetworkSection />
         <MobileAppSection />

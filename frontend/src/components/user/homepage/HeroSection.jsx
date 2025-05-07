@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 export const HeroSection = () => {
-
+      const nav = useNavigate()
     return (
 
 
@@ -34,8 +35,8 @@ export const HeroSection = () => {
       <span className="text-blue-400">Beyond Rides.</span>
       <span className="font-bold">connect.</span>
     </h2>
-    <button className="flex gap-2.5 items-center px-8 py-4 mt-10 text-xs font-bold tracking-widest text-black uppercase bg-white rounded-[50px]">
-      <span>Learn More</span>
+    <button onClick={()=>nav('/search')} className="flex gap-2.5 items-center px-8 py-4 mt-10 text-xs font-bold tracking-widest text-black uppercase bg-white rounded-[50px]">
+      <span >search</span>
       <svg
         width="15"
         height="15"

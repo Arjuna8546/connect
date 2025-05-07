@@ -30,7 +30,7 @@ export default function BookedRidelist() {
             <div className="flex justify-between items-center mb-5">
                 <h2 className="text-2xl font-bold text-white">My Booked Rides</h2>
                 <button
-                    className="h-10 text-base font-bold leading-10 text-center text-black uppercase bg-white rounded-[30px] tracking-[3.15px] px-4"
+                    className="border-none bg-[#9b87f5] text-white font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
                     onClick={() => setStatus(!status)}
                 >
                     {status?"Pending Bookings":"Approved Bookings"}

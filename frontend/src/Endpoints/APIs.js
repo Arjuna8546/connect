@@ -80,8 +80,17 @@ export const ridepost = (formBody) => axios.post(
     formBody
 )
 
-export const getrides = (user_id) => axios.get(
-    `ride/add/${user_id}`,
+export const getrides = (user_id,status) => axios.get(
+    `ride/add/${user_id}/?status=${status}`,
+)
+
+export const ridedelete = (ride_id) => axios.delete(
+    `ride/add/delete/${ride_id}`,
+)
+
+export const ridecancel = (formBody) => axios.patch(
+    `ride/add/update/`,
+    formBody
 )
 
 export const search = (formBody,pathParam) => axios.post(

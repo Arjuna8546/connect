@@ -60,7 +60,7 @@ const VehicleDetailModal = ({ isOpen, onClose, user }) => {
   return (
     <div className="fixed py-8  inset-0 z-50 flex items-center justify-center">
       <div className="fixed  inset-0 backdrop-blur-2xl" onClick={onClose}></div>
-      <div className="flex items-center justify-center p-4 w-full h-screen relative z-10 overflow-auto scrollbar-hide">
+      <div className="flex items-center justify-center p-4 w-full h-screen relative z-10 overflow-auto custom-scroll-hide ">
 
 
         <form

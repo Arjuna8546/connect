@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function BookedRideCard({ from, to, pickup_time, price, ride ,status}) {
+export default function BookedRideCard({ from, to, pickup_time, price, ride, status }) {
   const formattedTime = new Date(pickup_time).toLocaleString("en-IN", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -8,13 +8,29 @@ export default function BookedRideCard({ from, to, pickup_time, price, ride ,sta
 
   return (
     <article
-    className={`w-full py-8 px-6 md:px-10 rounded-2xl border border-stone-800 shadow-xl bg-[#0e0e0e] mb-6 transition hover:shadow-purple-500/30 animate-fade-in flex flex-col gap-5 ${
-      !status ? "opacity-60 backdrop-blur-[4px]" : ""
-    }`}>
+      className={`w-full py-8 px-6 md:px-10 rounded-2xl border border-stone-800 shadow-xl mb-6 transition hover:shadow-purple-500/30 animate-fade-in flex flex-col gap-5 relative ${ride.status === "cancelled"
+          ? "bg-[#1a1a1a] opacity-60 backdrop-blur-[3px]"
+          : "bg-[#0e0e0e]"
+        }`}
+    >
+      {/* Cancelled Tag */}
+      {ride.status === "cancelled" && (
+        <span className="absolute top-4 right-4 bg-red-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
+          Cancelled
+        </span>
+      )}
+
       <div className="flex flex-col gap-2 text-white">
-        <h3 className="text-xl font-bold text-[#D6BCFA]">{from} → {to}</h3>
-        <p><span className="text-[#9b87f5] font-semibold">Pickup Time:</span> {formattedTime}</p>
-        <p><span className="text-[#9b87f5] font-semibold">Price:</span> ₹{price}</p>
+        <h3 className="text-xl font-bold text-[#D6BCFA]">
+          {from} → {to}
+        </h3>
+        <p>
+          <span className="text-[#9b87f5] font-semibold">Pickup Time:</span>{" "}
+          {formattedTime}
+        </p>
+        <p>
+          <span className="text-[#9b87f5] font-semibold">Price:</span> ₹{price}
+        </p>
       </div>
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-t border-gray-700 pt-4">
@@ -31,10 +47,19 @@ export default function BookedRideCard({ from, to, pickup_time, price, ride ,sta
         </div>
 
         <div className="text-white">
-          <p><span className="text-[#9b87f5] font-semibold">Vehicle:</span> {ride.vehicle.type} - {ride.vehicle.model} ({ride.vehicle.number})</p>
+          <p>
+            <span className="text-[#9b87f5] font-semibold">Vehicle:</span>{" "}
+            {ride.vehicle.type} - {ride.vehicle.model} ({ride.vehicle.number})
+          </p>
         </div>
       </div>
-      
+      {ride.status !== "cancelled" &&<div className="flex  md:flex-row justify-between items-start md:items-center gap-4 border-t border-gray-700 pt-4">
+        <button className="border border-[#fb5e5e] text-[#fb5e5e] font-bold rounded-2xl md:rounded-full px-5 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200">cancel</button>
+        <button className="border border-[#9b87f5] text-[#9b87f5] font-bold rounded-2xl md:rounded-full px-5 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200" >Ticket</button>
+      </div>}
+
+
     </article>
+
   );
 }

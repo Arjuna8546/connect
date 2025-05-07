@@ -4,7 +4,9 @@ from .views import PostRide,RideSearchView,RideBook,ApproveRide
 
 urlpatterns = [
     path('add/',PostRide.as_view(),name="post_ride"),
-    path('add/<int:user_id>',PostRide.as_view(),name="post_ride"),
+    path('add/<int:user_id>/',PostRide.as_view(),name="get_ride"),
+    path('add/delete/<int:ride_id>',PostRide.as_view(),name="delete_ride"),
+    path('add/update/',PostRide.as_view(),name="update_ride"),
     path('search/',RideSearchView.as_view(),name="search"),
     path('seat/<int:ride_id>',RideSearchView.as_view(),name="search"),
     path('seat/update/',RideBook.as_view(),name="update_seat"),

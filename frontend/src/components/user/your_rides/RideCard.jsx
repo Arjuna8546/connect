@@ -22,12 +22,14 @@ export default function RideCard({
   stopovers,
   passengersList,
   handleBookRequest,
-}) 
-
-{
+  handleDeleteRide,
+  handleCancelRide
+}) {
   return (
     <article className="w-full py-10 px-6 md:px-14 mx-auto rounded-2xl border border-stone-800 shadow-2xl bg-[#0e0e0e] mb-8 transition hover:shadow-purple-500/30  animate-fade-in relative overflow-hidden flex flex-col gap-7">
-
+      {status !== "active" && (
+        <div className="absolute inset-0 bg-black/50  z-10 pointer-events-none rounded-2xl" />
+      )}
       <div className="w-full flex flex-col border-b border-gray-700 pb-6">
         <div className="flex items-center justify-between w-full flex-wrap gap-4">
 
@@ -115,17 +117,44 @@ export default function RideCard({
         </div>
       )}
 
-      <div className="flex flex-col-reverse md:flex-row md:items-center md:gap-7 gap-5 w-full justify-between pt-4">
+      {status == "active" && <div className="flex flex-col md:flex-row md:items-center md:gap-7 gap-4 w-full justify-between pt-4">
 
-        <button className="border-none bg-white text-black font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[125px] shadow-lg hover:from-[#ffffff] hover:to-[#f9f9f9] hover:scale-105 active:scale-95 transition-all duration-200 self-end md:self-auto">
-          {status} ride
-        </button>
-        {!instantBooking &&<button className="border-none bg-white text-black font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[125px] shadow-lg hover:from-[#ffffff] hover:to-[#ffffff] hover:scale-105 active:scale-95 transition-all duration-200 self-end md:self-auto"
-        onClick={()=>handleBookRequest(id)}
-        >
-          requests
-        </button>}
-      </div>
+        {/* Status Button */}
+        <div className="flex justify-center md:justify-start">
+          <button className="border-none bg-white text-black font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[125px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200">
+            start ride
+          </button>
+        </div>
+
+        {/* Edit & Delete Buttons */}
+        {passengersList?.length === 0 ? (
+          <div className="flex flex-col md:flex-row gap-4 items-center md:items-start justify-center md:justify-start">
+            <button onClick={() => handleDeleteRide(id)} className="border-none bg-[#9b87f5] text-white font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200">
+              Delete
+            </button>
+          </div>
+        ) :
+          (
+            <div className="flex flex-col md:flex-row gap-4 items-center md:items-start justify-center md:justify-start">
+              <button onClick={() => handleCancelRide(id)} className="border-none bg-[#9b87f5] text-white font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200">
+                Canncel
+              </button>
+            </div>
+          )
+        }
+
+        {/* Requests Button */}
+        {!instantBooking && (
+          <div className="flex justify-center md:justify-start">
+            <button
+              className="border-none bg-white text-black font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[130px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
+              onClick={() => handleBookRequest(id)}
+            >
+              Requests
+            </button>
+          </div>
+        )}
+      </div>}
     </article>
   );
 }
