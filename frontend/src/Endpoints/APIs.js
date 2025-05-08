@@ -80,8 +80,8 @@ export const ridepost = (formBody) => axios.post(
     formBody
 )
 
-export const getrides = (user_id,status) => axios.get(
-    `ride/add/${user_id}/?status=${status}`,
+export const getrides = (user_id,status,date) => axios.get(
+    `ride/add/${user_id}/?status=${status}&date=${date}`,
 )
 
 export const ridedelete = (ride_id) => axios.delete(
@@ -107,8 +107,8 @@ export const updateSeat = (formBody) =>axios.patch(
     formBody
 )
 
-export const getbookings = (id,status)=>axios.get(
-    `ride/booked/${id}/?status=${status}`
+export const getbookings = (id,status,date)=>axios.get(
+    `ride/booked/${id}/?status=${status}&date=${date}`
 )
 
 export const getallapproves =(id)=>axios.get(
@@ -118,4 +118,9 @@ export const getallapproves =(id)=>axios.get(
 export const approveorreject = (formBody)=>axios.post(
     'ride/book/staus',
     formBody
+)
+
+export const cancelbooking = (book_id,reason) =>axios.patch(
+    `ride/book/cancel/${book_id}`,
+    {reason:reason}
 )

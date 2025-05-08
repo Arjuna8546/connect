@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function BookedRideCard({ from, to, pickup_time, price, ride, status }) {
+export default function BookedRideCard({id, from, to, pickup_time, price, ride, status ,handlecancel}) {
   const formattedTime = new Date(pickup_time).toLocaleString("en-IN", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -54,7 +54,7 @@ export default function BookedRideCard({ from, to, pickup_time, price, ride, sta
         </div>
       </div>
       {ride.status !== "cancelled" &&<div className="flex  md:flex-row justify-between items-start md:items-center gap-4 border-t border-gray-700 pt-4">
-        <button className="border border-[#fb5e5e] text-[#fb5e5e] font-bold rounded-2xl md:rounded-full px-5 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200">cancel</button>
+        <button onClick={()=>handlecancel(id)} className="border border-[#fb5e5e] text-[#fb5e5e] font-bold rounded-2xl md:rounded-full px-5 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200">cancel</button>
         <button className="border border-[#9b87f5] text-[#9b87f5] font-bold rounded-2xl md:rounded-full px-5 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200" >Ticket</button>
       </div>}
 

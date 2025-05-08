@@ -35,12 +35,15 @@ class PostRide(APIView):
 
     def get(self, request, user_id):
         try:
+
             stats = request.GET.get('status', 'active')
+            date = request.GET.get('date',datetime.now().date())
+
             user = Users.objects.get(id=user_id)
         except Users.DoesNotExist:
             return Response({"success": False, "message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        rides = Ride.objects.filter(user=user,status=stats).select_related('vehicle', 'user').prefetch_related('stopover_prices')
+        rides = Ride.objects.filter(user=user,status=stats,date=date).select_related('vehicle', 'user').prefetch_related('stopover_prices')
 
         ride_data = []
 
@@ -471,9 +474,10 @@ class RideBook(APIView):
     def get(self, request, user_id):
         user = get_object_or_404(Users, id=user_id)
         stats = request.GET.get('status', 'active')
+        date = request.GET.get('date', datetime.now().date())
 
         bookings = BookRide.objects.filter(
-            Q(user=user) & Q(booking_status=stats)
+            Q(user=user) & Q(booking_status=stats)& Q(ride__date=date)
         ).select_related('ride__user', 'ride__vehicle')
 
         booking_list = []
@@ -509,6 +513,62 @@ class RideBook(APIView):
             "success": True,
             "data": booking_list
         }, status=status.HTTP_200_OK)
+        
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.db import transaction
+
+class CancelRide(APIView):
+    def patch(self, request, book_id):
+        try:
+            reason = request.data['reason']
+            booking = BookRide.objects.filter(id=book_id).first()
+            if not booking:
+                return Response({"success": False, "error": "Booking not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            seats = list(booking.seat_segments.all())
+            if not seats:
+                return Response({"success": False, "error": "No seats found for this booking"}, status=status.HTTP_400_BAD_REQUEST)
+
+            user = booking.user.username
+            location = f'{booking.from_loc_name} -> {booking.to_loc_name}'
+            no_seat = len(seats)
+
+            conversation = Conversation.objects.filter(participants=booking.user)\
+                                               .filter(participants=booking.ride.user)\
+                                               .first()
+            with transaction.atomic():
+
+                for seat in seats:
+                    seat.status = "vacant"
+                Seat.objects.bulk_update(seats, ['status'])
+
+                if conversation:
+                    Message.objects.create(
+                        conversation=conversation,
+                        sender=booking.user,
+                        content=(
+                            f"{user} has cancelled the ride from {location}.\n "
+                            F"Because of reason :{reason}.\n"
+                            f"Now {no_seat} seat(s) are vacant. Sorry for the inconvenience.\n"
+                        )
+                    )
+                booking.delete()
+
+            return Response({
+                "success": True,
+                "message": "Ride cancelled and seats updated successfully.",
+                "vacant_seats": no_seat
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({
+                "success": False,
+                "error": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        
 
         
 class ApproveRide(APIView):
