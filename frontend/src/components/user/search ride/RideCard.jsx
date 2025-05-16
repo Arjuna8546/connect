@@ -11,6 +11,7 @@ export default function RideCard({
     driver,
     gender,
     driverImage,
+    driverVerified,
     price,
     status,
     stopovers = [],
@@ -56,7 +57,15 @@ export default function RideCard({
                         className="w-14 h-14 rounded-full object-cover border border-gray-600 shadow"
                     />
                     <div className="flex flex-col text-left">
-                        <p className="text-base sm:text-lg font-semibold text-white">{driver}</p>
+                        <div className="flex gap-2 items-center">
+                        <p className="text-base sm:text-lg font-semibold text-white">{driver}</p>{driverVerified && (
+                            <img
+                            src="https://cdn.builder.io/api/v1/image/assets/aadabba814c24e21949a3d066a352728/ac356513f4cd364f86e079687e73a62865c2b46b?placeholderIfAbsent=true"
+                            alt="Verified badge"
+                            className="w-4 h-4"
+                            />
+                        )}
+                        </div>
                         <p className="text-sm text-[#9b87f5]">{gender}</p>
                     </div>
                 </div>

@@ -328,4 +328,17 @@ class UserConsumer(AsyncWebsocketConsumer):
         from .models import Notification
         Notification.objects.filter(receiver=user).delete()
     
-    
+class LocationConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        await self.accept()
+        print("WebSocket connected")
+
+    async def disconnect(self, close_code):
+        print("WebSocket disconnected")
+
+    # async def receive(self, content):
+    #     # content will have location data like {'latitude': ..., 'longitude': ...}
+    #     latitude = content.get('latitude')
+    #     longitude = content.get('longitude')
+    #     print(f"Received location: {latitude}, {longitude}")
+    #     # You can save to DB or broadcast to other users here

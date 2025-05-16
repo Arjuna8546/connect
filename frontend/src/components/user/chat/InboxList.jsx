@@ -26,23 +26,6 @@ export const InboxList = () => {
     initializeData();
   }, []);
 
-  // const handleStartConversation = async () => {
-  //   if (selectedUser && currentUserId) {
-  //     const participants = [selectedUser, currentUserId];
-  //     try {
-  //       const response = await createconversation({participants});
-  //       setConversations([...conversations, response.data]);
-  //       setActiveConversation(response.data);
-  //       setErrorMessage("");
-  //     } catch (error) {
-  //       if (error.response?.data?.error) {
-  //         setErrorMessage(error.response.data.error);
-  //       } else {
-  //         setErrorMessage("An unexpected error occurred. Please try again.");
-  //       }
-  //     }
-  //   }
-  // };
 
   const handleSelectConversation = (conversation) => {
     setActiveConversation(conversation);

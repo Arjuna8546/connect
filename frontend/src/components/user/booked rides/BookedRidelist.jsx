@@ -54,7 +54,7 @@ export default function BookedRidelist() {
         } catch (error) {
             toast.error(error?.response?.data?.error || "Something went wrong while cancelling the booking");
             console.error("Cancel booking error:", error);
-        }
+        }   
         finally {
             setIsCancelModalOpen(false)
         }

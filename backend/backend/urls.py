@@ -23,4 +23,5 @@ urlpatterns = [
     path('api/admin/',include("Admin.urls")),
     path('api/ride/',include("rides.urls")),
     path('api/chat/',include("chatapp.urls")),
+    path('api/mobile/',include("mobile.urls")),
 ]

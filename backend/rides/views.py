@@ -84,7 +84,8 @@ class PostRide(APIView):
                 "from": ride.start_location_name.upper(),
                 "to": ride.destination_location_name.upper(),
                 "duration": ride.duration,
-                "date": formatted_date,
+                "formatted_date": formatted_date,
+                "date":ride.date,
                 "status": ride.status,
                 "passengers": ride.passenger_count,
                 "vehicle": {
@@ -264,6 +265,7 @@ class RideSearchView(APIView):
                 "driver": ride.user.username,
                 "gender": getattr(ride.user, "gender", "Not specified"),
                 "driverImage": getattr(ride.user, "profile_url", ""),
+                "driverVerified":ride.user.is_verified,
                 "price": ride.price,
                 "status": "Instant" if ride.instant_booking else "Requested",
                 "stopovers": [
@@ -494,12 +496,14 @@ class RideBook(APIView):
                 "pickup_time": f"{ride.date}T{booking.pickup_time}",
                 "price": str(booking.price),
                 "ride": {
+                    "date":ride.date,
                     "id": ride.id,
                     "status":ride.status,
                     "rider": {
                         "name": rider.username,
                         "gender": rider.gender,
-                        "profileImage": rider.profile_url or ""
+                        "profileImage": rider.profile_url or "",
+                        "is_verified":rider.is_verified
                     },
                     "vehicle": {
                         "type": vehicle.vehicle_type,
@@ -514,10 +518,7 @@ class RideBook(APIView):
             "data": booking_list
         }, status=status.HTTP_200_OK)
         
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.db import transaction
+
 
 class CancelRide(APIView):
     def patch(self, request, book_id):

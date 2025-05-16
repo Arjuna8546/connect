@@ -10,6 +10,7 @@ export default function RideCard({
   to,
   duration,
   date,
+  formatted_date,
   status,
   passengers,
   vehicle,
@@ -25,6 +26,8 @@ export default function RideCard({
   handleDeleteRide,
   handleCancelRide
 }) {
+
+  const today = new Date().toISOString().split("T")[0];
   return (
     <article className="w-full py-10 px-6 md:px-14 mx-auto rounded-2xl border border-stone-800 shadow-2xl bg-[#0e0e0e] mb-8 transition hover:shadow-purple-500/30  animate-fade-in relative overflow-hidden flex flex-col gap-7">
       {status !== "active" && (
@@ -58,7 +61,7 @@ export default function RideCard({
 
           <div className="flex-shrink-0">
             <time className="text-3xl md:text-4xl  font-extrabold text-white px-4 py-1 rounded ">
-              {date}
+              {formatted_date}
             </time>
           </div>
         </div>
@@ -117,7 +120,7 @@ export default function RideCard({
         </div>
       )}
 
-      {status == "active" && <div className="flex flex-col md:flex-row md:items-center md:gap-7 gap-4 w-full justify-between pt-4">
+      {date >=today&&status == "active" && <div className="flex flex-col md:flex-row md:items-center md:gap-7 gap-4 w-full justify-between pt-4">
 
         {/* Status Button */}
         <div className="flex justify-center md:justify-start">
