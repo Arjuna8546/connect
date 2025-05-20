@@ -90,6 +90,7 @@ class BookRide(models.Model):
     ], default="active")
 
     booking_time = models.DateTimeField(auto_now_add=True)
+    book_otp = models.CharField(max_length=5,blank=True,null=True) 
     
     seat_segments = models.ManyToManyField("Seat", blank=True, related_name="held_by_bookings")
 

@@ -5,12 +5,18 @@ from rest_framework.response import Response
 
 from rest_framework import status
 from .models import Payment
-from base.models import Users
+from base.models import Users,WalletTransaction,Wallet
 from rides.serializer import BookRideSerializer
+from django.db import transaction
 from rides.models import BookRide
 from .serializer import PaymentSerializer
+from django.shortcuts import get_object_or_404
 import os
+import random
 from dotenv import load_dotenv
+from decimal import Decimal, ROUND_DOWN
+from django.core.mail import send_mail
+from django.conf import settings
 
 load_dotenv()
 
@@ -58,35 +64,87 @@ class CreatePaymentIntentView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except stripe.error.StripeError as e:
             return Response({'error': str(e)}, status=400)
-        
+
+def generate_otp():
+    return str(random.randint(10000, 99999))    
+
+def sent_otp_email(email,otp):
+    subject = "Your OTP Code"
+    message = f"Hello,\n\n Your OTP for Ride Verification is :{otp}.\n\nUse this to complete your Ride. While you joing the ride"
+    send_mail(subject, message, settings.EMAIL_HOST_USER, [email], fail_silently=False)  
         
 class ConfirmPaymentView(APIView):
     def post(self, request):
         payment_intent_id = request.data.get('payment_intent_id')
 
         if not payment_intent_id:
-            return Response({'error': 'PaymentIntent ID required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'PaymentIntent ID required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        payment = get_object_or_404(Payment, stripe_payment_id=payment_intent_id)
 
         try:
-            payment = Payment.objects.get(stripe_payment_id=payment_intent_id)
-        except Payment.DoesNotExist:
-            return Response({'error': 'Payment not found'}, status=status.HTTP_404_NOT_FOUND)
+            with transaction.atomic():
+                payment.success = True
+                payment.save()
 
-        try:
-            payment.success = True
-            payment.save()
+                if not hasattr(payment, 'book') or not payment.book:
+                    return Response(
+                        {'error': 'No associated booking found for payment'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                otp = generate_otp()
+                
+                book = payment.book
+                
+                book.book_otp = otp
+                book.payment_status = 'paid'
+                book.save()
 
-            if not hasattr(payment, 'book') or not payment.book:
-                return Response({'error': 'No associated booking found for payment'}, status=status.HTTP_400_BAD_REQUEST)
+                price = book.price
+                commission = (price * Decimal("0.05")).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+                balance_price = (price - commission).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
 
-            book = payment.book 
-            book.payment_status = 'paid'
-            book.save()
+                rider_wallet = book.ride.user.wallet
+                WalletTransaction.objects.create(
+                    wallet=rider_wallet,
+                    transaction_type='credit',
+                    amount=balance_price,
+                    description=(
+                        f'Amount ₹{balance_price} credited by '
+                        f'{book.user.username} for ride from '
+                        f'{book.from_loc_name} to {book.to_loc_name}'
+                    )
+                )
+
+                admin_user = Users.objects.filter(role="admin").first()
+                if admin_user and hasattr(admin_user, 'wallet'):
+                    WalletTransaction.objects.create(
+                        wallet=admin_user.wallet,
+                        transaction_type='credit',
+                        amount=commission,
+                        description=(
+                            f'Amount ₹{commission} credited for ride id '
+                            f'{book.ride.id} commission'
+                        )
+                    )
+                sent_otp_email(book.user.email,otp)
+
             data = {
-                "from_loc_name":book.from_loc_name,
-                "to_loc_name":book.to_loc_name,
-                "price":book.price              
+                "from_loc_name": book.from_loc_name,
+                "to_loc_name": book.to_loc_name,
+                "price": price
             }
-            return Response({'message': 'Payment marked as paid',"data":data}, status=status.HTTP_200_OK)
+
+            return Response(
+                {'message': 'Payment marked as paid', 'data': data},
+                status=status.HTTP_200_OK
+            )
+
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

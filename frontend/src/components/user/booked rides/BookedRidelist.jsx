@@ -134,7 +134,6 @@ export default function BookedRidelist() {
                     </button>
                 </div>
             </div>
-            <p className="text-white"> {location?.latitude} {location?.longitude} </p>
             {bookings?.length > 0 ? (
                 bookings.map((booking) => (
                     <BookedRideCard key={booking.id} {...booking} handlecancel={handleCancel} status={status} connectWs={connectWs} onPayemntClick={onPayemntClick} />

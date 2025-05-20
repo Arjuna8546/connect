@@ -179,7 +179,6 @@ export default function RideList() {
           </button>
         </div>
       </div>
-      <p className="text-white"> {location?.latitude} {location?.longitude} </p>
       {rides && rides.length > 0 ? (
         rides.map((ride, index) => (
           <RideCard key={index} {...ride} handleBookRequest={handleBookRequest} handleDeleteRide={handleDeleteRide} handleCancelRide={handleCancelRide} connectWs={connectWs}/>

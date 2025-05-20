@@ -110,6 +110,7 @@ class WalletTransaction(models.Model):
     transaction_type = models.CharField(max_length=6, choices=TRANSACTION_TYPE_CHOICES)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     timestamp = models.DateTimeField(auto_now_add=True)
+    description = models.TextField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if not self.pk: 
