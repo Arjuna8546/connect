@@ -124,3 +124,13 @@ export const cancelbooking = (book_id,reason) =>axios.patch(
     `ride/book/cancel/${book_id}`,
     {reason:reason}
 )
+
+export const payement_intent = (formBody) => axios.post(
+    'payment/create-payment-intent/',
+    formBody
+)
+
+export const confirm_payment = (formBody)=> axios.post(
+    'payment/confirm/',
+    formBody
+)

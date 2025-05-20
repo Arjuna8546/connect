@@ -496,6 +496,7 @@ class RideBook(APIView):
                 "to": booking.to_loc_name,
                 "pickup_time": f"{ride.date}T{booking.pickup_time}",
                 "price": str(booking.price),
+                "payment_status":booking.payment_status,
                 "ride": {
                     "date":ride.date,
                     "id": ride.id,

@@ -24,4 +24,5 @@ urlpatterns = [
     path('api/ride/',include("rides.urls")),
     path('api/chat/',include("chatapp.urls")),
     path('api/mobile/',include("mobile.urls")),
+    path('api/payment/',include("payment.urls")),
 ]

@@ -53,7 +53,8 @@ INSTALLED_APPS = [
     'Admin',
     'rides',
     'chatapp',
-    'mobile'
+    'mobile',
+    'payment',
 ]
 
 REST_FRAMEWORK = {

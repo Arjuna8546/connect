@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import CancelBooking from "./CancelBooking";
 import { motion } from "framer-motion";
 import LiveLocationModal from "../your_rides/LiveLocationModal";
+import PaymentModal from "../../../pages/payment/PaymentModal";
 
 export default function BookedRidelist() {
 
@@ -19,6 +20,9 @@ export default function BookedRidelist() {
     const [location, setLocation] = useState(null);
 
     const [locationModalOpen, setLocationModalOpen] = useState(false);
+    const [showPayment, setShowPayment] = useState(false);
+    const [bookId,setBookId] = useState(null)
+    const [amount,setAmount] = useState(0)
 
     const websocket_ride_url = import.meta.env.VITE_WEBSOCKET_RIDE_URL
 
@@ -99,11 +103,16 @@ export default function BookedRidelist() {
             ws.current.close();
             ws.current = null;
         }
-        setLocation(null); 
+        setLocation(null);
         setLocationModalOpen(false);
     };
 
-
+    const onPayemntClick = (book_id,amount)=>{
+        
+        setBookId(book_id)
+        setAmount(Math.round(amount))
+        setShowPayment(true)
+    }
 
     return (
         <section className="px-20 py-12 h-full max-md:p-10 max-sm:p-5">
@@ -128,7 +137,7 @@ export default function BookedRidelist() {
             <p className="text-white"> {location?.latitude} {location?.longitude} </p>
             {bookings?.length > 0 ? (
                 bookings.map((booking) => (
-                    <BookedRideCard key={booking.id} {...booking} handlecancel={handleCancel} status={status} connectWs={connectWs} />
+                    <BookedRideCard key={booking.id} {...booking} handlecancel={handleCancel} status={status} connectWs={connectWs} onPayemntClick={onPayemntClick} />
                 ))
             ) : (
                 <div className="flex justify-center items-center p-8">
@@ -181,6 +190,14 @@ export default function BookedRidelist() {
                 onClose={() => handleLocationModalClose()}
                 location={location || { latitude: 8.5241, longitude: 76.9366 }}
             />
+            {showPayment && (
+                <PaymentModal
+                    bookId={bookId}
+                    amount={amount} 
+                    onClose={() => setShowPayment(false)}
+                />
+            )}
+
         </section>
     );
 }

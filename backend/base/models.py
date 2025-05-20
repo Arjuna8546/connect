@@ -15,8 +15,10 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("is_verified",True)
         extra_fields.setdefault("status","active")
         extra_fields.setdefault("role","admin")
+        user = self.create_user(username, email, phone_no, date_of_birth, password, **extra_fields)
+        Wallet.objects.get_or_create(user=user)
 
-        return self.create_user(username,email,phone_no,date_of_birth,password,**extra_fields)
+        return user
 
 
 
@@ -87,3 +89,38 @@ class Vehicles(models.Model):
     vehicle_bio = models.CharField(max_length=255,blank=True,null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+
+class Wallet(models.Model):
+    user = models.OneToOneField(Users, on_delete=models.CASCADE, related_name='wallet')
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user}'s Wallet"
+
+
+class WalletTransaction(models.Model):
+    TRANSACTION_TYPE_CHOICES = [
+        ('credit', 'Credit'),
+        ('debit', 'Debit'),
+    ]
+
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='transactions')
+    transaction_type = models.CharField(max_length=6, choices=TRANSACTION_TYPE_CHOICES)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.pk: 
+            if self.transaction_type == 'credit':
+                self.wallet.balance += self.amount
+            elif self.transaction_type == 'debit':
+                if self.wallet.balance < self.amount:
+                    raise ValueError("Insufficient wallet balance.")
+                self.wallet.balance -= self.amount
+            self.wallet.save()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.transaction_type} ₹{self.amount} on {self.timestamp.strftime('%Y-%m-%d')}"

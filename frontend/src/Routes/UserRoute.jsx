@@ -22,6 +22,8 @@ import YourRidePage from '../pages/your ride/YourRidePage'
 import RideSearchPage from '../pages/search ride/SearchRidePage'
 import BookedRide from '../pages/Booked rides/BookedRide'
 import ChatPage from '../pages/chat/ChatPage'
+import SuccessPage from '../pages/payment/SuccessPage'
+import PaymentPage from '../pages/payment/PaymentPage'
 
 
 
@@ -51,7 +53,9 @@ function UserRoute() {
 
                 <Route path='/yourbookings' element={<ProtectedRoute><BookedRide/></ProtectedRoute>}></Route>
                 <Route path='/chat' element={<ProtectedRoute><ChatPage/></ProtectedRoute>}></Route>
-           
+
+                <Route path='/payment' element={<ProtectedRoute><PaymentPage/></ProtectedRoute>}></Route>
+                <Route path='/payment/success' element={<ProtectedRoute><SuccessPage/></ProtectedRoute>}></Route>
 
 
             </Routes>

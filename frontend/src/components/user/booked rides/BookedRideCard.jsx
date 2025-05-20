@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function BookedRideCard({id, from, to, pickup_time, price, ride, status ,handlecancel,connectWs}) {
+export default function BookedRideCard({id, from, to, pickup_time, price,payment_status, ride, status ,handlecancel,connectWs,onPayemntClick}) {
   const today = new Date().toISOString().split("T")[0];
   const formattedTime = new Date(pickup_time).toLocaleString("en-IN", {
     dateStyle: "medium",
@@ -66,8 +66,8 @@ export default function BookedRideCard({id, from, to, pickup_time, price, ride, 
         <button onClick={()=>handlecancel(id)} className="border border-[#fb5e5e] text-[#fb5e5e] font-bold rounded-2xl md:rounded-full px-5 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200">cancel</button>
         <div className="flex gap-3">
         {ride.is_tracking&&<button onClick={()=>connectWs(ride.id)} className="border border-[#9b87f5] text-[#9b87f5] font-bold rounded-2xl md:rounded-full px-5 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200" >track</button>}
-        <button className="border border-[#9b87f5] text-[#9b87f5] font-bold rounded-2xl md:rounded-full px-5 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200" >payment</button>
-        </div>
+        {payment_status!=="paid"&&<button onClick={()=>onPayemntClick(id,price)} className="border border-[#9b87f5] text-[#9b87f5] font-bold rounded-2xl md:rounded-full px-5 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200" >payment</button>}
+        </div> 
       </div>}
 
 

@@ -3,7 +3,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from rest_framework.views import APIView
-from .models import Users,Vehicles
+from .models import Users,Vehicles,Wallet
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
@@ -214,9 +214,9 @@ class VerifyOtp(APIView):
         serializer  = UserRegistrationSerializer(data = request.data)
 
         if serializer.is_valid():
-            serializer.save()
+            user = serializer.save()
+            Wallet.objects.create(user=user)
             delete_otp_from_redis(email)
-
             return Response(
                 {"success":True,"message":"OTP verified. Account created successfully."},
                 status=status.HTTP_201_CREATED
@@ -477,7 +477,8 @@ class GoogleAuthView(APIView):
             user.set_unusable_password()
             user.is_google =True
             user.save()
-            
+            Wallet.objects.create(user=user)
+                       
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
         refresh_token = str(refresh)
