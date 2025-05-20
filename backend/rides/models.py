@@ -40,6 +40,8 @@ class Ride(models.Model):
     
     status = models.CharField(max_length=20,choices=RIDE_STATUS_CHOICE,default="active")
     
+    is_tracking = models.BooleanField(default=False)
+    
     class Meta:
         indexes = [
             models.Index(fields=['user']),
@@ -137,3 +139,5 @@ class SeatRequest(models.Model):
 
     def __str__(self):
         return f"{self.user.username} requested Seat {self.seat.id} for Ride {self.ride.id} - {self.status}"
+
+

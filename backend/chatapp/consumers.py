@@ -330,15 +330,94 @@ class UserConsumer(AsyncWebsocketConsumer):
     
 class LocationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        self.ride_id = self.scope["url_route"]["kwargs"]["ride_id"]
+        self.ride_group_name = f'ride_{self.ride_id}'
+        
+        query_string = self.scope["query_string"].decode()
+        query_params = parse_qs(query_string)
+        user_id = query_params.get("user_id", [None])[0]
+        
+        self.is_rider = await self.check_if_rider(user_id)
+        
+        await self.channel_layer.group_add(
+            self.ride_group_name,
+            self.channel_name
+        )
+        
         await self.accept()
-        print("WebSocket connected")
+        print("WebSocket connected",self.ride_group_name)
+        
+        if self.is_rider:
+            await self.mark_ride_tracking(True)
+        
+        
+        cache_key = f"ride_last_location_{self.ride_id}"
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            await self.send(text_data=json.dumps(cached_data))
 
     async def disconnect(self, close_code):
+        if self.is_rider:
+            await self.mark_ride_tracking(False)
+            
         print("WebSocket disconnected")
 
-    # async def receive(self, content):
-    #     # content will have location data like {'latitude': ..., 'longitude': ...}
-    #     latitude = content.get('latitude')
-    #     longitude = content.get('longitude')
-    #     print(f"Received location: {latitude}, {longitude}")
-    #     # You can save to DB or broadcast to other users here
+    async def receive(self, text_data):
+        try:
+            data = json.loads(text_data)
+            latitude = data.get("latitude")
+            longitude = data.get("longitude")
+            timestamp = data.get("timestamp")
+            
+            cache_key = f"ride_last_location_{self.ride_id}"
+
+            cache.set(cache_key, {
+                "latitude": latitude,
+                "longitude": longitude,
+                "timestamp": timestamp,
+            }, timeout=60 * 6)
+
+            await self.channel_layer.group_send(
+                self.ride_group_name,
+                {
+                    "type": "send_location",
+                    "latitude": latitude,
+                    "longitude": longitude,
+                    "timestamp": timestamp
+                }
+            )
+
+        except json.JSONDecodeError:
+            print("Invalid JSON received")
+
+    async def send_location(self, event):
+        await self.send(text_data=json.dumps({
+            "latitude": event["latitude"],
+            "longitude": event["longitude"],
+            "timestamp": event["timestamp"]
+        }))
+    
+    async def send_status_change(self, event):
+        await self.send(text_data=json.dumps({
+            "type": event.get("message_type", "changed"),
+            "status": event["status"]
+        }))
+        
+    @database_sync_to_async
+    def mark_ride_tracking(self,Value):
+        from rides.models import Ride
+        try:
+            ride = Ride.objects.get(id=self.ride_id)
+            ride.is_tracking = Value 
+            ride.save()
+        except Ride.DoesNotExist:
+            print(f"Ride with ID {self.ride_id} does not exist")
+            
+    @database_sync_to_async
+    def check_if_rider(self, user_id):
+        from rides.models import Ride
+        try:
+            ride = Ride.objects.get(id=self.ride_id)
+            return str(ride.user.id) == str(user_id)
+        except Ride.DoesNotExist:
+            return False

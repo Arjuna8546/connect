@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import RideCard from "./RideCard";
 import { approveorreject, getallapproves, getrides, ridecancel, ridedelete } from "../../../Endpoints/APIs";
 import { useSelector } from "react-redux";
@@ -6,6 +6,7 @@ import ApprovedRequestModal from "./ApproveRequestModal";
 import toast from "react-hot-toast";
 import DeleteRideModal from "./DeleteRideModal";
 import CancelRideModal from "./CancelRideModal";
+import LiveLocationModal from "./LiveLocationModal";
 
 export default function RideList() {
   const user = useSelector((state) => state.user)
@@ -18,6 +19,12 @@ export default function RideList() {
   const [canelId, setCancelId] = useState(null)
   const [refetch, setRefetch] = useState(false)
   const [status, setStatus] = useState(true)
+  const ws = useRef(null);
+  const [location, setLocation] = useState(null);
+
+  const [locationModalOpen, setLocationModalOpen] = useState(false);
+
+  const websocket_ride_url =  import.meta.env.VITE_WEBSOCKET_RIDE_URL
 
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
@@ -118,6 +125,40 @@ export default function RideList() {
       setRefetch(!refetch)
     }
   }
+
+  const connectWs = (ride_id) => {
+
+    ws.current = new WebSocket(`${websocket_ride_url}${ride_id}/?user_id=${user.id}`)
+    setLocationModalOpen(true)
+    ws.current.onopen = () => {
+      console.log("🟢 WebSocket connected");
+    };
+    ws.current.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        setLocation(data)
+      } catch (err) {
+        console.error("❌ Invalid JSON:", err);
+      }
+    };
+    ws.current.close = (e) => {
+      console.log("connection closed");
+    };
+    ws.current.onerror = (e) => {
+      console.error("⚠️ WebSocket error:", e.message);
+    };
+  }
+
+  const handleLocationModalClose = () => {
+        if (ws.current) {
+            ws.current.close();
+            ws.current = null;
+        }
+        setLocation(null); 
+        setLocationModalOpen(false);
+    };
+
+
   return (
     <section className="px-20 py-12 max-md:p-10 max-sm:p-5">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 py-3">
@@ -138,10 +179,10 @@ export default function RideList() {
           </button>
         </div>
       </div>
-
+      <p className="text-white"> {location?.latitude} {location?.longitude} </p>
       {rides && rides.length > 0 ? (
         rides.map((ride, index) => (
-          <RideCard key={index} {...ride} handleBookRequest={handleBookRequest} handleDeleteRide={handleDeleteRide} handleCancelRide={handleCancelRide} />
+          <RideCard key={index} {...ride} handleBookRequest={handleBookRequest} handleDeleteRide={handleDeleteRide} handleCancelRide={handleCancelRide} connectWs={connectWs}/>
         ))
       ) : (
         <div className="flex justify-center items-center p-8">
@@ -192,6 +233,11 @@ export default function RideList() {
         setIsCancelModalOpen(false);
         setCancelId(null)
       }} onConfirm={confirmCancel} />}
+      <LiveLocationModal
+        isOpen={locationModalOpen}
+        onClose={() => handleLocationModalClose()}
+        location={location || { latitude: 8.5241, longitude: 76.9366 }}
+      />
     </section>
   );
 }

@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import BookedRideCard from "./BookedRideCard";
 import { cancelbooking, getbookings } from "../../../Endpoints/APIs";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import CancelBooking from "./CancelBooking";
-import {motion} from "framer-motion";
+import { motion } from "framer-motion";
+import LiveLocationModal from "../your_rides/LiveLocationModal";
 
 export default function BookedRidelist() {
 
@@ -13,6 +14,13 @@ export default function BookedRidelist() {
     const [status, setStatus] = useState(true)
     const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
     const [canelId, setCancelId] = useState(null)
+
+    const ws = useRef(null);
+    const [location, setLocation] = useState(null);
+
+    const [locationModalOpen, setLocationModalOpen] = useState(false);
+
+    const websocket_ride_url = import.meta.env.VITE_WEBSOCKET_RIDE_URL
 
     const [selectedDate, setSelectedDate] = useState(() => {
         const today = new Date();
@@ -54,12 +62,46 @@ export default function BookedRidelist() {
         } catch (error) {
             toast.error(error?.response?.data?.error || "Something went wrong while cancelling the booking");
             console.error("Cancel booking error:", error);
-        }   
+        }
         finally {
             setIsCancelModalOpen(false)
         }
     };
 
+    const connectWs = (ride_id) => {
+        if (ws.current) {
+            ws.current.close(); // close existing one before starting new
+        }
+        ws.current = new WebSocket(`${websocket_ride_url}${ride_id}/?user_id=${user.id}`)
+
+        setLocationModalOpen(true)
+        ws.current.onopen = () => {
+            console.log("🟢 WebSocket connected");
+        };
+        ws.current.onmessage = (e) => {
+            try {
+                const data = JSON.parse(e.data);
+                setLocation(data)
+            } catch (err) {
+                console.error("❌ Invalid JSON:", err);
+            }
+        };
+        ws.current.close = (e) => {
+            console.error("connection clossed");
+        };
+        ws.current.onerror = (e) => {
+            console.error("⚠️ WebSocket error:", e.message);
+        };
+    }
+
+    const handleLocationModalClose = () => {
+        if (ws.current) {
+            ws.current.close();
+            ws.current = null;
+        }
+        setLocation(null); 
+        setLocationModalOpen(false);
+    };
 
 
 
@@ -83,10 +125,10 @@ export default function BookedRidelist() {
                     </button>
                 </div>
             </div>
-
+            <p className="text-white"> {location?.latitude} {location?.longitude} </p>
             {bookings?.length > 0 ? (
                 bookings.map((booking) => (
-                    <BookedRideCard key={booking.id} {...booking} handlecancel={handleCancel} status={status} />
+                    <BookedRideCard key={booking.id} {...booking} handlecancel={handleCancel} status={status} connectWs={connectWs} />
                 ))
             ) : (
                 <div className="flex justify-center items-center p-8">
@@ -134,6 +176,11 @@ export default function BookedRidelist() {
                 </div>
             )}
             {isCancelModalOpen && <CancelBooking isOpen={isCancelModalOpen} onClose={() => setIsCancelModalOpen(false)} onConfirm={handleCancelSubmit} />}
+            <LiveLocationModal
+                isOpen={locationModalOpen}
+                onClose={() => handleLocationModalClose()}
+                location={location || { latitude: 8.5241, longitude: 76.9366 }}
+            />
         </section>
     );
 }

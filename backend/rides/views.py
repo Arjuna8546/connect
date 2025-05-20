@@ -99,6 +99,7 @@ class PostRide(APIView):
                 "dropoffLocation": ride.destination_location_name,
                 "additionalInfo": ride.additional_info,
                 "instantBooking":ride.instant_booking,
+                "is_tracking":ride.is_tracking,
                 "stopovers": [
                     {
                         "stop": stop.stop,
@@ -498,6 +499,7 @@ class RideBook(APIView):
                 "ride": {
                     "date":ride.date,
                     "id": ride.id,
+                    "is_tracking":ride.is_tracking,
                     "status":ride.status,
                     "rider": {
                         "name": rider.username,

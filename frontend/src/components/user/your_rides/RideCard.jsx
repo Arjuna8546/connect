@@ -21,10 +21,12 @@ export default function RideCard({
   dropoffLocation,
   additionalInfo,
   stopovers,
+  is_tracking,
   passengersList,
   handleBookRequest,
   handleDeleteRide,
-  handleCancelRide
+  handleCancelRide,
+  connectWs
 }) {
 
   const today = new Date().toISOString().split("T")[0];
@@ -123,11 +125,11 @@ export default function RideCard({
       {date >=today&&status == "active" && <div className="flex flex-col md:flex-row md:items-center md:gap-7 gap-4 w-full justify-between pt-4">
 
         {/* Status Button */}
-        <div className="flex justify-center md:justify-start">
-          <button className="border-none bg-white text-black font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[125px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200">
-            start ride
+        {is_tracking&&<div className="flex justify-center md:justify-start">
+          <button onClick={()=>connectWs(id)} className="border-none bg-white text-black font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[125px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200">
+            show location
           </button>
-        </div>
+        </div>}
 
         {/* Edit & Delete Buttons */}
         {passengersList?.length === 0 ? (
