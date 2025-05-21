@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import PostRide,RideSearchView,RideBook,ApproveRide,CancelRide
+from .views import PostRide,RideSearchView,RideBook,ApproveRide,CancelRide,BookRideOtpVerify
 
 
 urlpatterns = [
@@ -13,6 +13,7 @@ urlpatterns = [
     path('booked/<int:user_id>/',RideBook.as_view(),name="update_seat"),
     path('book/approve/<int:ride_id>',ApproveRide.as_view(),name="approve ride"),
     path('book/cancel/<int:book_id>',CancelRide.as_view(),name="cancel booke ride"),
-    path('book/staus',ApproveRide.as_view(),name="approve pending or reject")
+    path('book/staus',ApproveRide.as_view(),name="approve pending or reject"),
+    path('book/otpverify',BookRideOtpVerify.as_view(),name="verify booking"),
     
 ]

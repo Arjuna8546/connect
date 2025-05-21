@@ -134,3 +134,8 @@ export const confirm_payment = (formBody)=> axios.post(
     'payment/confirm/',
     formBody
 )
+
+export const verifybook = (formBody) => axios.post(
+    'ride/book/otpverify',
+    formBody
+)

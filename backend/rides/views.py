@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
 
-from base.models import Users
+from base.models import Users,Wallet,WalletTransaction
 from .models import Ride,Seat,BookRide,StopOvers,SeatRequest
 from chatapp.models import Conversation,Message,Notification
 from django.contrib.gis.geos import Point
@@ -23,6 +23,7 @@ from django.utils import timezone
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.conf import settings
+from decimal import Decimal, ROUND_DOWN
 
 
 class PostRide(APIView):
@@ -61,7 +62,11 @@ class PostRide(APIView):
                     to_location = segments.last().to_location
 
                     passengers_list.append({
+                        "booking_id":booking.id,
+                        "payment_status":booking.payment_status,
+                        "verified_otp":booking.verified_otp,
                         "name": user.username,
+                        "email":user.email,
                         "gender": user.gender,
                         "profileImage": user.profile_url if user.profile_url else None,
                         "from": from_location,
@@ -130,48 +135,71 @@ class PostRide(APIView):
 
         ride.delete()
         return Response({"success": True, "message": "Ride deleted successfully."}, status=status.HTTP_200_OK)
-    
+
     def patch(self, request):
         ride_id = request.data.get("ride_id")
         reason = request.data.get("reason")
-        
+
         if not (ride_id and reason):
             return Response({"error": "Missing required fields."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        book_rides = BookRide.objects.filter(Q(ride__id=ride_id) & Q(booking_status="active"))
 
+        book_rides = BookRide.objects.filter(Q(ride__id=ride_id) & Q(booking_status="active"))
         user_messages = defaultdict(list)
-        
+
         Ride.objects.filter(id=ride_id).update(status="cancelled")
+
+        try:
+            with transaction.atomic():
+                for booking in book_rides:
+                    if booking.payment_status == "paid":
+                        user_wallet = Wallet.objects.select_for_update().get(user=booking.user)
+                        rider_wallet = Wallet.objects.select_for_update().get(user=booking.ride.user)
+
+                        price = booking.price
+                        commission = (price * Decimal("0.05")).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+                        refund_amount = (price - commission).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+
+                        WalletTransaction(
+                            wallet=user_wallet,
+                            transaction_type='credit',
+                            amount=refund_amount,
+                            description=f"₹{refund_amount} refunded for cancelled ride. ₹{commission} retained as booking fee."
+                        ).save()
+
+                        WalletTransaction(
+                            wallet=rider_wallet,
+                            transaction_type='debit',
+                            amount=refund_amount,
+                            description=(
+                                f"₹{refund_amount} debited due to ride cancellation "
+                                f"of trip from {booking.from_loc_name} to {booking.to_loc_name}."
+                            )
+                        ).save()
+        except Exception as e:
+            return Response({"success": False, "error": f"Refund failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         for booking in book_rides:
             user = booking.user
-            message = (
-
-                f"{booking.from_loc_name} to {booking.to_loc_name} "
-
-            )
+            message = f"{booking.from_loc_name} to {booking.to_loc_name}"
             user_messages[user].append(message)
 
-        for user, messages in user_messages.items():
+        # for user, messages in user_messages.items():
+        #     ride_list = "\n".join([f"- {msg}" for msg in messages])
+        #     subject = "Apology: Your Booked Ride(s) Have Been Cancelled"
+        #     message = (
+        #         f"Dear {user.username},\n\n"
+        #         f"The following ride(s) you booked have been cancelled:\n\n"
+        #         f"{ride_list}\n\n"
+        #         f"Reason: {reason}.\n\n"
+        #         f"We apologize for the inconvenience.\n\n"
+        #         f"Best regards,\nThe RideShare Team"
+        #     )
+        #     try:
+        #         send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email], fail_silently=False)
+        #     except Exception as e:
+        #         pass  # Email failure won't stop the refund
 
-            ride_list = "\n".join([f"- {msg}" for msg in messages])
-            
-            subject = "Apology: Your Booked Ride(s) Have Been Cancelled"
-            message = (
-                f"Dear {user.username},\n\n"
-                f"We sincerely apologize, but the following ride(s) you booked have been cancelled:\n\n"
-                f"{ride_list}\n\n"
-                f"Reason for cancellation: {reason}.\n"
-                f"We regret the inconvenience caused and appreciate your understanding.\n\n"
-                f"Best regards,\n"
-                f"The RideShare Team"
-            )
-
-            send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email], fail_silently=False)
-                
-        
-        return Response({"success": True, "message": "Ride Canceled."}, status=status.HTTP_200_OK)
+        return Response({"success": True, "message": "Ride cancelled and refunds processed."}, status=status.HTTP_200_OK)
 
 
 def parse_duration(duration_str):
@@ -526,24 +554,27 @@ class RideBook(APIView):
 class CancelRide(APIView):
     def patch(self, request, book_id):
         try:
-            reason = request.data['reason']
-            booking = BookRide.objects.filter(id=book_id).first()
+            reason = request.data.get('reason')
+            if not reason:
+                return Response({"success": False, "error": "Reason is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+            booking = BookRide.objects.select_related('user', 'ride__user').prefetch_related('seat_segments').filter(id=book_id).first()
             if not booking:
-                return Response({"success": False, "error": "Booking not found"}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"success": False, "error": "Booking not found."}, status=status.HTTP_404_NOT_FOUND)
 
             seats = list(booking.seat_segments.all())
             if not seats:
-                return Response({"success": False, "error": "No seats found for this booking"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"success": False, "error": "No seats found for this booking."}, status=status.HTTP_400_BAD_REQUEST)
 
             user = booking.user.username
-            location = f'{booking.from_loc_name} -> {booking.to_loc_name}'
+            location = f"{booking.from_loc_name} -> {booking.to_loc_name}"
             no_seat = len(seats)
 
             conversation = Conversation.objects.filter(participants=booking.user)\
                                                .filter(participants=booking.ride.user)\
                                                .first()
-            with transaction.atomic():
 
+            with transaction.atomic():
                 for seat in seats:
                     seat.status = "vacant"
                 Seat.objects.bulk_update(seats, ['status'])
@@ -553,11 +584,37 @@ class CancelRide(APIView):
                         conversation=conversation,
                         sender=booking.user,
                         content=(
-                            f"{user} has cancelled the ride from {location}.\n "
-                            F"Because of reason :{reason}.\n"
-                            f"Now {no_seat} seat(s) are vacant. Sorry for the inconvenience.\n"
+                            f"{user} has cancelled the ride from {location}.\n"
+                            f"Reason: {reason}.\n"
+                            f"{no_seat} seat(s) are now vacant. Sorry for the inconvenience."
                         )
                     )
+
+                if booking.payment_status == 'paid':
+                    user_wallet = Wallet.objects.get(user=booking.user)
+                    rider_wallet = Wallet.objects.get(user=booking.ride.user)
+
+                    price = booking.price
+                    commission = (price * Decimal("0.10")).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+                    refund_amount = (price - commission).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+
+                    WalletTransaction(
+                        wallet=user_wallet,
+                        transaction_type='credit',
+                        amount=refund_amount,
+                        description=f"₹{refund_amount} refunded for cancelled ride. ₹{commission} retained as cancellation fee."
+                    ).save()
+
+                    WalletTransaction(
+                        wallet=rider_wallet,
+                        transaction_type='debit',
+                        amount=refund_amount,
+                        description=(
+                            f"₹{refund_amount} debited due to ride cancellation by {user} "
+                            f"for trip from {booking.from_loc_name} to {booking.to_loc_name}."
+                        )
+                    ).save()
+
                 booking.delete()
 
             return Response({
@@ -571,8 +628,6 @@ class CancelRide(APIView):
                 "success": False,
                 "error": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        
 
         
 class ApproveRide(APIView):
@@ -713,3 +768,36 @@ class ApproveRide(APIView):
 
         return Response({"success": True, "message": message}, status=status.HTTP_200_OK)
         
+class BookRideOtpVerify(APIView):
+    def post(self, request):
+        try:
+            otp = request.data.get("otp")
+            book_id = request.data.get("bookId")
+            if not otp or not book_id:
+                return Response(
+                    {"success": False, "message": "OTP and Book ID are required"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            book = get_object_or_404(BookRide, id=book_id)
+            if otp != book.book_otp:
+                return Response(
+                    {"success": False, "message": "OTP is invalid"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            book.verified_otp = True
+            book.save()
+
+            return Response({"success": True, "message": "OTP verified successfully"}, status=status.HTTP_200_OK)
+
+        except BookRide.DoesNotExist:
+            return Response(
+                {"success": False, "message": "Booking not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"success": False, "message": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

@@ -91,7 +91,7 @@ class BookRide(models.Model):
 
     booking_time = models.DateTimeField(auto_now_add=True)
     book_otp = models.CharField(max_length=5,blank=True,null=True) 
-    
+    verified_otp = models.BooleanField(default=False)
     seat_segments = models.ManyToManyField("Seat", blank=True, related_name="held_by_bookings")
 
     def __str__(self):

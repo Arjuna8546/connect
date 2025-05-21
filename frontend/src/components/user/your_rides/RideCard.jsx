@@ -26,9 +26,9 @@ export default function RideCard({
   handleBookRequest,
   handleDeleteRide,
   handleCancelRide,
-  connectWs
+  connectWs,
+  handleOtpVerify
 }) {
-
   const today = new Date().toISOString().split("T")[0];
   return (
     <article className="w-full py-10 px-6 md:px-14 mx-auto rounded-2xl border border-stone-800 shadow-2xl bg-[#0e0e0e] mb-8 transition hover:shadow-purple-500/30  animate-fade-in relative overflow-hidden flex flex-col gap-7">
@@ -97,7 +97,6 @@ export default function RideCard({
                     key={index}
                     className="flex items-center justify-between gap-4 bg-[#1a1a1a] px-4 py-2 rounded-xl shadow-sm"
                   >
-
                     <div className="flex items-center gap-4">
                       <img
                         src={passenger.profileImage}
@@ -114,6 +113,34 @@ export default function RideCard({
                         </p>
                       </div>
                     </div>
+
+                    <div className="flex items-center gap-3">
+                      {passenger.payment_status === "paid" && (
+                        <span className="text-xs font-semibold text-green-400 bg-green-900 bg-opacity-30 px-2 py-1 rounded-full">
+                          Paid
+                        </span>
+                      )}
+                      {passenger.payment_status === "paid" && !passenger.verified_otp && (
+                        <div
+                          onClick={() => handleOtpVerify(passenger.booking_id, passenger.email)}
+                          className="w-8 h-8 rounded-full bg-[#9b87f5] flex items-center justify-center hover:bg-[#8674d6] cursor-pointer"
+                        >
+                          <svg
+                            className="w-4 h-4 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M9 12l2 2l4 -4M12 22C6.48 22 2 17.52 2 12S6.48 2 12 2s10 4.48 10 10s-4.48 10-10 10z"
+                            />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -122,13 +149,14 @@ export default function RideCard({
         </div>
       )}
 
-      {date >=today&&status == "active" && <div className="flex flex-col md:flex-row md:items-center md:gap-7 gap-4 w-full justify-between pt-4">
+      {date >= today && status == "active" && <div className="flex flex-col md:flex-row md:items-center md:gap-7 gap-4 w-full justify-between pt-4">
 
         {/* Status Button */}
-        {is_tracking&&<div className="flex justify-center md:justify-start">
-          <button onClick={()=>connectWs(id)} className="border-none bg-white text-black font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[125px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200">
+        {is_tracking && <div className="flex justify-center md:justify-start gap-3">
+          <button onClick={() => connectWs(id)} className="border-none bg-white text-black font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[125px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200">
             show location
           </button>
+
         </div>}
 
         {/* Edit & Delete Buttons */}
