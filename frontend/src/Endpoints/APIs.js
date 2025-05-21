@@ -36,7 +36,7 @@ export const getVehicles = (user_id) => axios.get(
     `vehicles/${user_id}/`
 )
 
-export const updateVehicles = (formBody)=>axios.patch(
+export const updateVehicles = (formBody) => axios.patch(
     'update/vehicle/',
     formBody
 )
@@ -60,17 +60,17 @@ export const changepassword = (formBody) => axios.post(
     formBody
 )
 
-export const restpassword = (formBody) =>axios.post(
+export const restpassword = (formBody) => axios.post(
     'resetpassword/',
     formBody
 )
 
-export const google = (formBody) =>axios.post(
+export const google = (formBody) => axios.post(
     'google/',
     formBody
 )
 
-export const checkgoogle = (formBody) =>axios.post(
+export const checkgoogle = (formBody) => axios.post(
     'google/check/',
     formBody
 )
@@ -80,7 +80,7 @@ export const ridepost = (formBody) => axios.post(
     formBody
 )
 
-export const getrides = (user_id,status,date) => axios.get(
+export const getrides = (user_id, status, date) => axios.get(
     `ride/add/${user_id}/?status=${status}&date=${date}`,
 )
 
@@ -93,36 +93,36 @@ export const ridecancel = (formBody) => axios.patch(
     formBody
 )
 
-export const search = (formBody,pathParam) => axios.post(
+export const search = (formBody, pathParam) => axios.post(
     `ride/search/?${pathParam}`,
     formBody
 )
 
-export const seat = (ride_id)=> axios.get(
+export const seat = (ride_id) => axios.get(
     `ride/seat/${ride_id}`
 )
 
-export const updateSeat = (formBody) =>axios.patch(
+export const updateSeat = (formBody) => axios.patch(
     'ride/seat/update/',
     formBody
 )
 
-export const getbookings = (id,status,date)=>axios.get(
+export const getbookings = (id, status, date) => axios.get(
     `ride/booked/${id}/?status=${status}&date=${date}`
 )
 
-export const getallapproves =(id)=>axios.get(
+export const getallapproves = (id) => axios.get(
     `ride/book/approve/${id}`
 )
 
-export const approveorreject = (formBody)=>axios.post(
+export const approveorreject = (formBody) => axios.post(
     'ride/book/staus',
     formBody
 )
 
-export const cancelbooking = (book_id,reason) =>axios.patch(
+export const cancelbooking = (book_id, reason) => axios.patch(
     `ride/book/cancel/${book_id}`,
-    {reason:reason}
+    { reason: reason }
 )
 
 export const payement_intent = (formBody) => axios.post(
@@ -130,7 +130,7 @@ export const payement_intent = (formBody) => axios.post(
     formBody
 )
 
-export const confirm_payment = (formBody)=> axios.post(
+export const confirm_payment = (formBody) => axios.post(
     'payment/confirm/',
     formBody
 )
@@ -138,4 +138,8 @@ export const confirm_payment = (formBody)=> axios.post(
 export const verifybook = (formBody) => axios.post(
     'ride/book/otpverify',
     formBody
+)
+
+export const wallet = (user_id,page) => axios.get(
+    `payment/wallet/${user_id}/?page=${page}`
 )

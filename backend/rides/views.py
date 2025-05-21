@@ -678,7 +678,7 @@ class ApproveRide(APIView):
         if bookride.booking_status != "pending":
             return Response({"error": "Booking already processed."}, status=400)
 
-        message = "Booking approved and seats booked." if approve else "Booking rejected and seats cleared."
+        message = "Booking approved and seats booked." if approve else "Booking rejected ."
 
         with transaction.atomic():
             seats = bookride.seat_segments.all()
@@ -730,9 +730,6 @@ class ApproveRide(APIView):
                 
             if not approve:
                 for seat in seats:
-
-                    seat.status = "vacant"
-                    seat.save()
 
                     SeatRequest.objects.filter(
                         user=user, ride=ride, seat=seat

@@ -47,7 +47,7 @@ const NavigationMenu = () => {
     {
       icon: PayPalIcon,
       label: "Payments",
-      onClick: () => console.log("Payments clicked"),
+      onClick: () => nav('/wallet'),
     },
   ];
 

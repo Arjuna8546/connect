@@ -2,14 +2,14 @@ import stripe
 from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
 
 from rest_framework import status
 from .models import Payment
 from base.models import Users,WalletTransaction,Wallet
-from rides.serializer import BookRideSerializer
 from django.db import transaction
 from rides.models import BookRide
-from .serializer import PaymentSerializer
+from .serializer import PaymentSerializer,WalletTransactionSerializer
 from django.shortcuts import get_object_or_404
 import os
 import random
@@ -148,3 +148,31 @@ class ConfirmPaymentView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+            
+class WalletDetails(APIView):
+    def get(self, request, user_id):
+        if not user_id:
+            return Response({"success": False, "error": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            wallet = Wallet.objects.get(user=user_id)
+        except Wallet.DoesNotExist:
+            return Response({"success": False, "error": "Wallet not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        transactions = WalletTransaction.objects.filter(wallet=wallet).order_by('-timestamp')
+
+        paginator = PageNumberPagination()
+        paginator.page_size = 5 
+        result_page = paginator.paginate_queryset(transactions, request)
+
+        serializer = WalletTransactionSerializer(result_page, many=True)
+
+        return paginator.get_paginated_response({
+            "success": True,
+            "user_mobile": wallet.user.phone_no,
+            "balance": wallet.balance,
+            "transaction": serializer.data
+        })
+        
+        
+         

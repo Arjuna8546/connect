@@ -120,7 +120,7 @@ export default function RideCard({
                           Paid
                         </span>
                       )}
-                      {passenger.payment_status === "paid" && !passenger.verified_otp && (
+                      {is_tracking && passenger.payment_status === "paid" && !passenger.verified_otp && (
                         <div
                           onClick={() => handleOtpVerify(passenger.booking_id, passenger.email)}
                           className="w-8 h-8 rounded-full bg-[#9b87f5] flex items-center justify-center hover:bg-[#8674d6] cursor-pointer"
@@ -160,21 +160,28 @@ export default function RideCard({
         </div>}
 
         {/* Edit & Delete Buttons */}
-        {passengersList?.length === 0 ? (
-          <div className="flex flex-col md:flex-row gap-4 items-center md:items-start justify-center md:justify-start">
-            <button onClick={() => handleDeleteRide(id)} className="border-none bg-[#9b87f5] text-white font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200">
-              Delete
-            </button>
-          </div>
-        ) :
-          (
+        {!is_tracking && (
+          passengersList?.length === 0 ? (
             <div className="flex flex-col md:flex-row gap-4 items-center md:items-start justify-center md:justify-start">
-              <button onClick={() => handleCancelRide(id)} className="border-none bg-[#9b87f5] text-white font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200">
-                Canncel
+              <button
+                onClick={() => handleDeleteRide(id)}
+                className="border-none bg-[#9b87f5] text-white font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
+              >
+                Delete
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col md:flex-row gap-4 items-center md:items-start justify-center md:justify-start">
+              <button
+                onClick={() => handleCancelRide(id)}
+                className="border-none bg-[#9b87f5] text-white font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
+              >
+                Cancel
               </button>
             </div>
           )
-        }
+        )}
+
 
         {/* Requests Button */}
         {!instantBooking && (
