@@ -12,7 +12,7 @@ export default function BookedRidelist() {
 
     const user = useSelector((state) => state.user)
     const [bookings, setBookings] = useState()
-    const [status, setStatus] = useState(true)
+    const [status, setStatus] = useState("active")
     const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
     const [canelId, setCancelId] = useState(null)
 
@@ -21,8 +21,8 @@ export default function BookedRidelist() {
 
     const [locationModalOpen, setLocationModalOpen] = useState(false);
     const [showPayment, setShowPayment] = useState(false);
-    const [bookId,setBookId] = useState(null)
-    const [amount,setAmount] = useState(0)
+    const [bookId, setBookId] = useState(null)
+    const [amount, setAmount] = useState(0)
 
     const websocket_ride_url = import.meta.env.VITE_WEBSOCKET_RIDE_URL
 
@@ -44,7 +44,7 @@ export default function BookedRidelist() {
                 console.log(error)
             }
         }
-        handleEffect(user?.user?.id, status === true ? "active" : "pending")
+        handleEffect(user?.user?.id, status)
     }, [user?.user?.id, status, selectedDate])
 
     const handleCancel = (id) => {
@@ -107,8 +107,8 @@ export default function BookedRidelist() {
         setLocationModalOpen(false);
     };
 
-    const onPayemntClick = (book_id,amount)=>{
-        
+    const onPayemntClick = (book_id, amount) => {
+
         setBookId(book_id)
         setAmount(Math.round(amount))
         setShowPayment(true)
@@ -126,12 +126,20 @@ export default function BookedRidelist() {
                         onChange={(e) => setSelectedDate(e.target.value)}
                         className="bg-[#9b87f5] text-white border border-stone-700 rounded-full px-6 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
                     />
-                    <button
-                        className="border-none bg-[#9b87f5] text-white font-bold rounded-2xl md:rounded-full px-6 py-2 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
-                        onClick={() => setStatus(!status)}
-                    >
-                        {status ? "Pending Bookings" : "Approved Bookings"}
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                        {["active", "pending", "cancelled","completed"].map((item) => (
+                            <button
+                                key={item}
+                                className={`border-none px-4 py-2 rounded-full text-sm font-semibold tracking-wide shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 ${status === item
+                                        ? "bg-[#9b87f5] text-white"
+                                        : "bg-gray-200 text-black"
+                                    }`}
+                                onClick={() => setStatus(item)}
+                            >
+                                {item.charAt(0).toUpperCase() + item.slice(1)} Bookings
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
             {bookings?.length > 0 ? (
@@ -192,7 +200,7 @@ export default function BookedRidelist() {
             {showPayment && (
                 <PaymentModal
                     bookId={bookId}
-                    amount={amount} 
+                    amount={amount}
                     onClose={() => setShowPayment(false)}
                 />
             )}

@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import RideCard from "./RideCard";
-import { approveorreject, getallapproves, getrides, ridecancel, ridedelete, verifybook } from "../../../Endpoints/APIs";
+import { approveorreject, finishride, getallapproves, getrides, ridecancel, ridedelete, verifybook } from "../../../Endpoints/APIs";
 import { useSelector } from "react-redux";
 import ApprovedRequestModal from "./ApproveRequestModal";
 import toast from "react-hot-toast";
@@ -20,23 +20,24 @@ export default function RideList() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
   const [canelId, setCancelId] = useState(null)
   const [refetch, setRefetch] = useState(false)
-  const [status, setStatus] = useState(true)
+  const [status, setStatus] = useState("active")
   const ws = useRef(null);
   const [location, setLocation] = useState(null);
+  const [rideId, setRideId] = useState(null);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
-  const websocket_ride_url =  import.meta.env.VITE_WEBSOCKET_RIDE_URL
+  const [bookId, setBookId] = useState(null)
+  const [email, setEmail] = useState(null)
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split("T")[0];
   });
-  const [bookId,setBookId] = useState(null)
-  const [email,setEmail] = useState(null)
+
+  const websocket_ride_url = import.meta.env.VITE_WEBSOCKET_RIDE_URL
 
   useEffect(() => {
     const handleEffect = async (id) => {
       try {
-        const stats = status ? "active" : "cancelled"
-        const res = await getrides(id, stats, selectedDate)
+        const res = await getrides(id, status, selectedDate)
 
         if (res?.data?.success === true) {
           setRides(res?.data?.rides)
@@ -127,60 +128,80 @@ export default function RideList() {
   }
 
   const connectWs = (ride_id) => {
+    setRideId(ride_id);
+    ws.current = new WebSocket(`${websocket_ride_url}${ride_id}/?user_id=${user.id}`);
+    setLocationModalOpen(true);
 
-    ws.current = new WebSocket(`${websocket_ride_url}${ride_id}/?user_id=${user.id}`)
-    setLocationModalOpen(true)
     ws.current.onopen = () => {
       console.log("🟢 WebSocket connected");
     };
+
     ws.current.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data);
-        setLocation(data)
+        setLocation(data);
       } catch (err) {
         console.error("❌ Invalid JSON:", err);
       }
     };
-    ws.current.close = (e) => {
-      console.log("connection closed");
+
+    ws.current.onclose = (e) => {
+      console.log("🔴 WebSocket closed");
     };
+
     ws.current.onerror = (e) => {
       console.error("⚠️ WebSocket error:", e.message);
     };
-  }
+  };
 
   const handleLocationModalClose = () => {
-        if (ws.current) {
-            ws.current.close();
-            ws.current = null;
-        }
-        setLocation(null); 
-        setLocationModalOpen(false);
-    };
+    if (ws.current) {
+      ws.current.close();
+      ws.current = null;
+    }
+    setLocation(null);
+    setRideId(null)
+    setLocationModalOpen(false);
+  };
 
-  const handleOtpVerify = (bookid,email)=>{
+  const handleOtpVerify = (bookid, email) => {
     setIsOtpModalOpen(true)
     setEmail(email)
     setBookId(bookid)
   }
 
   const onOtpSubmit = async (otp) => {
-  try {
-    const res = await verifybook({ otp: otp, bookId: bookId });
-    if (res?.data?.success) {
-      toast.success("OTP verified successfully");
-      setIsOtpModalOpen(false)
-    } else {
-      toast.error(res?.data?.message || "OTP verification failed");
+    try {
+      const res = await verifybook({ otp: otp, bookId: bookId });
+      if (res?.data?.success) {
+        toast.success("OTP verified successfully");
+        setIsOtpModalOpen(false)
+      } else {
+        toast.error(res?.data?.message || "OTP verification failed");
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Something went wrong");
+    } finally {
+      setRefetch(!refetch)
     }
-  } catch (error) {
-    toast.error(error?.response?.data?.message || "Something went wrong");
-  }finally{
-    setRefetch(!refetch)
-  }
-};
+  };
 
-  
+
+  const handleFinishRide = async (location) => {
+    try {
+      const res = await finishride({ "location": location, "ride_id": rideId })
+      if (res?.data?.success) {
+        toast.success(res?.data?.message)
+      } else {
+        toast.error(res?.data?.message)
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message)
+    }finally{
+      setTimeout(()=>{setLocationModalOpen(false)
+      setRefetch(!refetch)},300)
+    }
+  }
 
   return (
     <section className="px-20 py-12 max-md:p-10 max-sm:p-5">
@@ -194,17 +215,25 @@ export default function RideList() {
             onChange={(e) => setSelectedDate(e.target.value)}
             className="bg-[#9b87f5] text-white border border-stone-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
           />
-          <button
-            onClick={() => setStatus(!status)}
-            className="border-none bg-[#9b87f5] text-white font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
-          >
-            {status ? "Cancelled Ride" : "Active Ride"}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            {["active", "cancelled", "completed"].map((item) => (
+              <button
+                key={item}
+                className={`border-none px-4 py-2 rounded-full text-sm font-semibold tracking-wide shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 ${status === item
+                    ? "bg-[#9b87f5] text-white"
+                    : "bg-gray-200 text-black"
+                  }`}
+                onClick={() => setStatus(item)}
+              >
+                {item.charAt(0).toUpperCase() + item.slice(1)} Ride
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       {rides && rides.length > 0 ? (
         rides.map((ride, index) => (
-          <RideCard key={index} {...ride} handleBookRequest={handleBookRequest} handleDeleteRide={handleDeleteRide} handleCancelRide={handleCancelRide} connectWs={connectWs} handleOtpVerify={handleOtpVerify}/>
+          <RideCard key={index} {...ride} handleBookRequest={handleBookRequest} handleDeleteRide={handleDeleteRide} handleCancelRide={handleCancelRide} connectWs={connectWs} handleOtpVerify={handleOtpVerify} />
         ))
       ) : (
         <div className="flex justify-center items-center p-8">
@@ -259,8 +288,9 @@ export default function RideList() {
         isOpen={locationModalOpen}
         onClose={() => handleLocationModalClose()}
         location={location || { latitude: 8.5241, longitude: 76.9366 }}
+        handleFinishRide={handleFinishRide}
       />
-      {isOtpModalOpen&&<OtpVerificationModal isOpen={isOtpModalOpen} onClose={()=>setIsOtpModalOpen(!isOtpModalOpen)} email={email} onOtpSubmit={onOtpSubmit}/>}
+      {isOtpModalOpen && <OtpVerificationModal isOpen={isOtpModalOpen} onClose={() => setIsOtpModalOpen(!isOtpModalOpen)} email={email} onOtpSubmit={onOtpSubmit} />}
 
     </section>
   );

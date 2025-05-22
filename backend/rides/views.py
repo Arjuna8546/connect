@@ -8,6 +8,7 @@ from .models import Ride,Seat,BookRide,StopOvers,SeatRequest
 from chatapp.models import Conversation,Message,Notification
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
+from django.contrib.gis.db.models.functions import Distance
 from django.db.models import Q
 from datetime import datetime, timedelta
 from django.db import transaction
@@ -151,6 +152,8 @@ class PostRide(APIView):
         try:
             with transaction.atomic():
                 for booking in book_rides:
+                    booking.booking_status="cancelled"
+                    booking.save()
                     if booking.payment_status == "paid":
                         user_wallet = Wallet.objects.select_for_update().get(user=booking.user)
                         rider_wallet = Wallet.objects.select_for_update().get(user=booking.ride.user)
@@ -506,7 +509,6 @@ class RideBook(APIView):
         user = get_object_or_404(Users, id=user_id)
         stats = request.GET.get('status', 'active')
         date = request.GET.get('date', datetime.now().date())
-
         bookings = BookRide.objects.filter(
             Q(user=user) & Q(booking_status=stats)& Q(ride__date=date)
         ).select_related('ride__user', 'ride__vehicle')
@@ -614,8 +616,8 @@ class CancelRide(APIView):
                             f"for trip from {booking.from_loc_name} to {booking.to_loc_name}."
                         )
                     ).save()
-
-                booking.delete()
+                booking.booking_status='cancelled'
+                booking.save()
 
             return Response({
                 "success": True,
@@ -797,4 +799,76 @@ class BookRideOtpVerify(APIView):
             return Response(
                 {"success": False, "message": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            ) 
+            
+class RideFinish(APIView):
+    def post(self, request):
+        location = request.data.get('location')
+        ride_id = request.data.get('ride_id')
+
+        if not ride_id or not location:
+            return Response({"success": False, "message": "Some fields are missing"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            lat = float(location['latitude'])
+            lng = float(location['longitude'])
+        except (KeyError, TypeError, ValueError):
+            return Response({"success": False, "message": "Invalid location format"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_point = Point(lng, lat, srid=4326)
+
+        try:
+            ride = Ride.objects.annotate(
+                dist=Distance('destination_location', user_point)
+            ).get(id=ride_id)
+        except Ride.DoesNotExist:
+            return Response({"success": False, "message": "Ride not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if ride.dist.m > 1000:
+            return Response({
+                "success": False,
+                "message": f"Rider is {round(ride.dist.m / 1000, 2)} Km away, still need to go"
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            with transaction.atomic():
+                ride.status = 'completed'
+                ride.save()
+                
+                bookings = BookRide.objects.select_related('user__wallet', 'ride__user__wallet').filter(ride=ride)
+
+                for book in bookings:
+                    book.booking_status="completed"
+                    book.save()
+                    if book.payment_status == 'paid' and not book.verified_otp:
+                        price = book.price
+                        commission = (price * Decimal("0.05")).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+                        refund_amount = (price - commission).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+
+                        user_wallet = book.user.wallet
+                        rider_wallet = book.ride.user.wallet
+
+                        WalletTransaction.objects.create(
+                            wallet=user_wallet,
+                            transaction_type='credit',
+                            amount=refund_amount,
+                            description=(
+                                f"₹{refund_amount} refunded for not joining the ride "
+                                f"from {book.from_loc_name} to {book.to_loc_name}. ₹{commission} retained as commission fee."
+                            )
+                        )
+
+                        WalletTransaction.objects.create(
+                            wallet=rider_wallet,
+                            transaction_type='debit',
+                            amount=refund_amount,
+                            description=(
+                                f"₹{refund_amount} debited due to rider not joining the trip "
+                                f"from {book.from_loc_name} to {book.to_loc_name}."
+                            )
+                        )
+
+            return Response({"success": True, "message": "Ride marked as completed and refunds processed."}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"success": False, "message": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

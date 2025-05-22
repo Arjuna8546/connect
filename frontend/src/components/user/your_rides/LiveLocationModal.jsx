@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
-export default function LiveLocationModal({ isOpen, onClose, location }) {
+export default function LiveLocationModal({ isOpen, onClose, location, handleFinishRide }) {
   const mapContainerRef = useRef(null);
   const markerRef = useRef(null);
   const mapRef = useRef(null);
@@ -54,6 +54,14 @@ export default function LiveLocationModal({ isOpen, onClose, location }) {
           <button onClick={onClose} className="text-gray-600 hover:text-black text-xl">×</button>
         </div>
         <div style={{ height: '400px' }} ref={mapContainerRef} className="rounded-b-lg" />
+        {handleFinishRide&&<div className='flex justify-center my-3'>
+        <button
+          onClick={() => handleFinishRide(location)}
+          className=" justify-center border-none bg-[#9b87f5] text-white font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
+        >
+          Ride Finish
+        </button>
+        </div>}
       </div>
     </div>
   );

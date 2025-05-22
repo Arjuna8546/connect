@@ -62,11 +62,11 @@ export default function BookedRideCard({id, from, to, pickup_time, price,payment
           </p>
         </div>
       </div>
-      {ride.date>=today && ride.status !== "cancelled" &&<div className="flex  md:flex-row justify-between items-start md:items-center gap-4 border-t border-gray-700 pt-4">
+      {ride.date>=today && ride.status !== "cancelled" && status==='active'&&<div className="flex  md:flex-row justify-between items-start md:items-center gap-4 border-t border-gray-700 pt-4">
         {!ride.is_tracking&&<button onClick={()=>handlecancel(id)} className="border border-[#fb5e5e] text-[#fb5e5e] font-bold rounded-2xl md:rounded-full px-5 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200">cancel</button>}
         <div className="flex gap-3">
         {ride.is_tracking&&<button onClick={()=>connectWs(ride.id)} className="border border-[#9b87f5] text-[#9b87f5] font-bold rounded-2xl md:rounded-full px-5 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200" >track</button>}
-        {payment_status!=="paid"&&<button onClick={()=>onPayemntClick(id,price)} className="border border-[#9b87f5] text-[#9b87f5] font-bold rounded-2xl md:rounded-full px-5 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200" >payment</button>}
+        {payment_status!=="paid"&& <button onClick={()=>onPayemntClick(id,price)} className="border border-[#9b87f5] text-[#9b87f5] font-bold rounded-2xl md:rounded-full px-5 py-3 text-base uppercase tracking-wide min-w-[156px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200" >payment</button>}
         </div> 
       </div>}
 

@@ -143,3 +143,8 @@ export const verifybook = (formBody) => axios.post(
 export const wallet = (user_id,page) => axios.get(
     `payment/wallet/${user_id}/?page=${page}`
 )
+
+export const finishride = (formBody) => axios.post(
+    'ride/finish/',
+    formBody
+)

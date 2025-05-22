@@ -27,7 +27,8 @@ export default function RideCard({
   handleDeleteRide,
   handleCancelRide,
   connectWs,
-  handleOtpVerify
+  handleOtpVerify,
+  handleFinishRide
 }) {
   const today = new Date().toISOString().split("T")[0];
   return (
@@ -184,7 +185,7 @@ export default function RideCard({
 
 
         {/* Requests Button */}
-        {!instantBooking && (
+        {!is_tracking&&!instantBooking && (
           <div className="flex justify-center md:justify-start">
             <button
               className="border-none bg-white text-black font-bold rounded-2xl md:rounded-full px-8 py-3 text-base uppercase tracking-wide min-w-[130px] shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
