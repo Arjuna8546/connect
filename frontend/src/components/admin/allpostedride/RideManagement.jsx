@@ -5,7 +5,7 @@ const RideManagement = ({ rides,setStatus }) => {
   return (
     <main className="p-10 ml-64 max-md:ml-0 max-md:p-5">
       <h1 className="text-2xl font-bold text-stone-300 mb-8">RIDE MANAGEMENT</h1>
-      <div className="flex gap-3 flex-wrap mb-6">
+      <div className="flex gap-3 justify-end flex-wrap mb-6">
         {statusOptions.map((s) => (
           <button
             key={s}

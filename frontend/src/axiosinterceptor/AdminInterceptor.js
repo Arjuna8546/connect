@@ -1,7 +1,7 @@
 import axios from "axios";
-
+const ADMINBASE_URL = import.meta.env.VITE_ADMINBASE_URL
 const axiosInstance = axios.create({
-    baseURL: "http://127.0.0.1:8000/api/admin/",
+    baseURL: ADMINBASE_URL,
     withCredentials: true
 });
 
@@ -14,7 +14,7 @@ axiosInstance.interceptors.response.use(
             originalRequest._retry = true;
             try {
                 await axios.post(
-                    "http://127.0.0.1:8000/api/admin/token/refresh/",
+                    `${ADMINBASE_URL}token/refresh/`,
                     {},
                     { withCredentials: true }
                 )

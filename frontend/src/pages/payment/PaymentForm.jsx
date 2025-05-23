@@ -4,7 +4,7 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-
+const VITE_CLIENT_URL = import.meta.env.VITE_CLIENT_URL
 const PaymentForm = () => {
   const stripe = useStripe();
   const elements = useElements();
@@ -22,7 +22,7 @@ const PaymentForm = () => {
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: "http://localhost:5173/payment/redirect",
+        return_url: `${VITE_CLIENT_URL}/payment/redirect`,
       },
     });
 

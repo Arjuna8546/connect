@@ -94,6 +94,7 @@ const DashboardCard = ({ data, range, setRange }) => {
                     <option value={2}>Past Day</option>
                     <option value={7}>Past Week</option>
                     <option value={30}>Past Month</option>
+                    <option value={365}>Past Year</option>
                 </select>
             </div>
 

@@ -179,4 +179,22 @@ class WalletDetails(APIView):
         })
         
         
-         
+class Allpayments(APIView):
+    def get(self,request,user_id):
+        try:
+            if not user_id:
+                return Response({"success":False,"message":"no user to get the payments"},status=status.HTTP_400_BAD_REQUEST)
+            user = Users.objects.get(id=user_id)
+            stats = request.GET.get("status",'succeeded')
+            payment = Payment.objects.filter(user=user,success=stats).order_by('-id')
+            paginator = PageNumberPagination()
+            paginator.page_size = 2
+            result_page = paginator.paginate_queryset(payment, request)
+            serializer = PaymentSerializer(result_page,many=True)
+            return paginator.get_paginated_response({
+                "success": True,
+                "message": "All payments retrieved successfully",
+                "payments": serializer.data
+            })
+        except Exception as e:
+            return Response({"success":False,"message":f"An error occured: {str(e)}"},status=status.HTTP_400_BAD_REQUEST)      

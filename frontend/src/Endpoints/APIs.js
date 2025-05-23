@@ -144,6 +144,10 @@ export const wallet = (user_id,page) => axios.get(
     `payment/wallet/${user_id}/?page=${page}`
 )
 
+export const getpayements = (user_id,page,status) => axios.get(
+    `payment/transactions/${user_id}/?page=${page}&status=${status}`
+)
+
 export const finishride = (formBody) => axios.post(
     'ride/finish/',
     formBody

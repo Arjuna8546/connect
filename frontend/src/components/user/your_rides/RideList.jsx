@@ -237,7 +237,7 @@ export default function RideList() {
         ))
       ) : (
         <div className="flex justify-center items-center p-8">
-          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-8 shadow-lg transform transition-all hover:scale-102 max-w-md w-full">
+          <div className="bg-[#0e0e0e] border border-stone-800 rounded-2xl p-8 shadow-lg transform transition-all hover:scale-102 max-w-md w-full">
             <div className="flex flex-col items-center space-y-4">
               {/* Car Icon */}
               <div className="text-violet-400 animate-bounce">

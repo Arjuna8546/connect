@@ -34,7 +34,7 @@ const WalletMain = () => {
       <div className=" mx-auto p-4 md:p-6 animate-fade-in">
 
         <div className="p-6 pt-2">
-          <div className={`bg-stone-900 rounded-2xl p-6 shadow-lg transition-all hover:shadow-xl relative overflow-hidden  'opacity-100' : 'opacity-0'} transition-opacity duration-500`}>
+          <div className={`bg-[#0e0e0e] rounded-2xl p-6 shadow-lg transition-all hover:shadow-xl relative overflow-hidden  'opacity-100' : 'opacity-0'} transition-opacity duration-500`}>
 
             <div className="flex items-center mb-4">
               <div className="bg-[#9b87f5] p-3 rounded-full mr-4 animate-pulse">
@@ -60,7 +60,7 @@ const WalletMain = () => {
             <h2 className="text-white text-lg font-semibold">Transactions</h2>
           </div>
 
-          <div className="bg-stone-900 rounded-xl overflow-hidden">
+          <div className="bg-[#0e0e0e] rounded-xl overflow-hidden">
             <div className="divide-y divide-gray-800">
               {transactions.map((transaction, index) => {
                 const { timestamp, transaction_type, amount, description } = transaction;

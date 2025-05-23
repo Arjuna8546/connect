@@ -25,6 +25,7 @@ import ChatPage from '../pages/chat/ChatPage'
 import PaymentPage from '../pages/payment/PaymentPage'
 import WalletPage from '../pages/walletpage/WalletPage'
 import RedirectPage from '../pages/payment/SuccessPage'
+import TransactionsPage from '../pages/transactions/TransactionsPage'
 
 
 
@@ -59,6 +60,7 @@ function UserRoute() {
                 <Route path='/payment/redirect' element={<ProtectedRoute><RedirectPage/></ProtectedRoute>}></Route>
 
                 <Route path='/wallet' element={<ProtectedRoute><WalletPage/></ProtectedRoute>}></Route>
+                <Route path='/transactions' element={<ProtectedRoute><TransactionsPage/></ProtectedRoute>}></Route>
             </Routes>
 
         

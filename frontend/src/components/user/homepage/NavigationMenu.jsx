@@ -9,6 +9,7 @@ import {
   PayPalIcon,
   LogoutIcon,
   LoginIconBlack,
+  WalletIcon
 } from "./Icons";
 import { logout } from "../../../Endpoints/APIs";
 import { useNavigate } from "react-router-dom";
@@ -45,9 +46,14 @@ const NavigationMenu = () => {
       onClick: () => nav('/profile'),
     },
     {
+      icon: WalletIcon,
+      label: "Wallet",
+      onClick: () => nav('/wallet'),
+    },
+        {
       icon: PayPalIcon,
       label: "Payments",
-      onClick: () => nav('/wallet'),
+      onClick: () => nav('/transactions'),
     },
   ];
 

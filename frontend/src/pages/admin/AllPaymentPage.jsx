@@ -39,6 +39,7 @@ const AllPaymentPage = () => {
                 <div className="flex flex-1 relative pt-[104px]">
                     <Sidebar />
                     <div className="flex-1 overflow-auto">
+                        <h1 className=" ml-74 text-2xl font-bold text-stone-300 mt-8">PAYMENT MANAGEMENT</h1>
                         <PaymentManagement payments={payments} setStatus={setStatus}/>
                     </div>
 
