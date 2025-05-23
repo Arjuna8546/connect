@@ -4,6 +4,7 @@ from rest_framework_simplejwt.views import (
 )
 from rest_framework.views import APIView
 from base.models import Users
+from payment.models import Payment
 from rides.models import Ride,BookRide
 from rest_framework.response import Response
 from rest_framework import status
@@ -11,6 +12,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from .permissions import IsAdmin
 from rest_framework import permissions
 from base.serializer import CustomTokenObtainPairSerializer
+from payment.serializer import PaymentSerializer
 
 from rest_framework.pagination import PageNumberPagination
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -270,7 +272,8 @@ class AllRides(APIView):
     permission_classes=[IsAdmin]
     def get(self,request):
         try: 
-            rides = Ride.objects.all().order_by('id')
+            stats = request.GET.get("status",'active')
+            rides = Ride.objects.filter(status=stats).order_by('id')
 
             paginator = PageNumberPagination()
             paginator.page_size = 2
@@ -287,8 +290,9 @@ class AllRides(APIView):
 class AllBook(APIView):
     permission_classes=[IsAdmin]
     def get(self,request):
-        try: 
-            bookings = BookRide.objects.all().order_by('id')
+        try:
+            stats = request.GET.get("status",'active')
+            bookings = BookRide.objects.filter(booking_status=stats).order_by('-id')
 
             paginator = PageNumberPagination()
             paginator.page_size = 2
@@ -298,6 +302,24 @@ class AllBook(APIView):
                 "success": True,
                 "message": "All rides retrieved successfully",
                 "bookings": serializer.data
+            })
+        except Exception as e:
+            return Response({"success":False,"message":f"An error occured: {str(e)}"},status=status.HTTP_400_BAD_REQUEST)
+        
+class Allpayments(APIView):
+    permission_classes=[IsAdmin]
+    def get(self,request):
+        try:
+            stats = request.GET.get("status",'succeeded')
+            payment = Payment.objects.filter(success=stats).order_by('-id')
+            paginator = PageNumberPagination()
+            paginator.page_size = 2
+            result_page = paginator.paginate_queryset(payment, request)
+            serializer = PaymentSerializer(result_page,many=True)
+            return paginator.get_paginated_response({
+                "success": True,
+                "message": "All payments retrieved successfully",
+                "payments": serializer.data
             })
         except Exception as e:
             return Response({"success":False,"message":f"An error occured: {str(e)}"},status=status.HTTP_400_BAD_REQUEST)

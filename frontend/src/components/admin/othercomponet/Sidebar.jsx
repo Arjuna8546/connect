@@ -46,13 +46,16 @@ import toast from "react-hot-toast";
     const onBookManagement = ()=>{
       nav('/admin/bookings')
     }
+        const onPaymentManagement = ()=>{
+      nav('/admin/payments')
+    }
     return (
       <nav className="fixed border-r border-solid bg-stone-950 border-r-neutral-800 w-[258px] h-[calc(100vh-104px)] max-md:hidden">
         <NavItem icon={UserFriendsIcon} label="user management" onClick={onUserManagement} />
         <NavItem icon={DiscourseIcon} label="ALL rides" onClick={onRidesManagement} />
         <NavItem icon={UserIcon} label="BOOKINGS" onClick={onBookManagement} />
-        <NavItem icon={PayPalIcon} label="reports" />
-        <NavItem icon={TimesCircleIcon} label="Payments & REFUND" />
+        <NavItem icon={PayPalIcon} label="reports"  />
+        <NavItem icon={TimesCircleIcon} label="Payments & REFUND"onClick={onPaymentManagement} />
         <NavItem icon={TimesCircleIcon} label="log out" onClick={onLogout} />
       </nav>
     );

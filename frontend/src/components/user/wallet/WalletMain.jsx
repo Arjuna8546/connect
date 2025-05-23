@@ -63,9 +63,10 @@ const WalletMain = () => {
           <div className="bg-stone-900 rounded-xl overflow-hidden">
             <div className="divide-y divide-gray-800">
               {transactions.map((transaction, index) => {
-                const { date, transaction_type, amount, description } = transaction;
+                const { timestamp, transaction_type, amount, description } = transaction;
                 const isCredit = transaction_type === 'credit';
-
+                const date = new Date(timestamp)
+                const formateddate = date.toLocaleString();
                 return (
                   <div key={index} className="py-4 px-6 hover:bg-stone-950/40 transition-all cursor-pointer rounded-lg">
                     <div className="flex justify-between items-center">
@@ -79,7 +80,7 @@ const WalletMain = () => {
                         </div>
                         <div>
                           <p className="text-white font-medium">{description}</p>
-                          <p className="text-gray-400 text-xs">{date}</p>
+                          <p className="text-gray-400 text-xs">{formateddate}</p>
                         </div>
                       </div>
                       <div className={`font-semibold ${isCredit ? 'text-green-500' : 'text-red-400'}`}>

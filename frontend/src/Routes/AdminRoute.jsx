@@ -7,6 +7,7 @@ import VerifyRequest from '../pages/admin/VerifyRequestPage'
 import AdminProtectedRoute from '../protectedroutes/admin/AdminProtectedRoute'
 import AllPostedRide from '../pages/admin/AllPostedRide'
 import AllBookingsPage from '../pages/admin/AllBookingsPage'
+import AllPaymentPage from '../pages/admin/AllPaymentPage'
 
 function AdminRoute() {
   return (
@@ -17,6 +18,7 @@ function AdminRoute() {
             <Route path="/verifyrequest" element={<AdminProtectedRoute><VerifyRequest/></AdminProtectedRoute>}></Route>
             <Route path="/rides" element={<AdminProtectedRoute><AllPostedRide/></AdminProtectedRoute>}></Route>
             <Route path="/bookings" element={<AdminProtectedRoute><AllBookingsPage/></AdminProtectedRoute>}></Route>
+            <Route path="/payments" element={<AdminProtectedRoute><AllPaymentPage/></AdminProtectedRoute>}></Route>
         </Routes>
     </div>
   )

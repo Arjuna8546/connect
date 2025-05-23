@@ -28,12 +28,17 @@ export const blockuser = (formBody)=> adminaxios.patch(
     formBody
 )
 
-export const admingetallrides = (page = 1) => {
-    let url = `allrides/?page=${page}`;
+export const admingetallrides = (page = 1,status) => {
+    let url = `allrides/?page=${page}&status=${status}`;
     return adminaxios.get(url);
 }
 
-export const admingetallbookings = (page = 1) => {
-    let url = `allbookings/?page=${page}`;
+export const admingetallbookings = (page = 1,status) => {
+    let url = `allbookings/?page=${page}&status=${status}`;
+    return adminaxios.get(url);
+}
+
+export const admingetallpayements = (page = 1,status) => {
+    let url = `allpayment/?page=${page}&status=${status}`;
     return adminaxios.get(url);
 }

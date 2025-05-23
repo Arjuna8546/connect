@@ -13,6 +13,13 @@ class StopOversSerializer(GeoFeatureModelSerializer):
         geo_field = 'stop_location'
         fields = ['stop', 'stop_location', 'price', 'position','duration','distance']
 
+class BookedPassengerSerializer(serializers.ModelSerializer):
+    user_details = UserRegistrationSerializer(source='user', read_only=True)
+
+    class Meta:
+        model = BookRide
+        fields = ['id', 'user', 'user_details', 'from_loc_name', 'to_loc_name', 'seat_segments', 'booking_status']
+
 class RideSerializer(GeoFeatureModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset = Users.objects.all())
     user_details = UserRegistrationSerializer(source='user', read_only=True)
@@ -22,6 +29,7 @@ class RideSerializer(GeoFeatureModelSerializer):
     pick_up_location = GeometryField(required=False, allow_null=True)
     drop_off_location = GeometryField(required=False, allow_null=True)
     route = GeometryField()
+    passengers = serializers.SerializerMethodField()
     
     stopovers = StopOversSerializer(source='stopover_prices', many=True, required=False)
 
@@ -32,9 +40,13 @@ class RideSerializer(GeoFeatureModelSerializer):
             'id', 'user','user_details', 'vehicle', 'start_location', 'start_location_name',
             'destination_location', 'destination_location_name', 'pick_up_location',
             'drop_off_location', 'date', 'time', 'route', 'route_distance','duration', 'passenger_count',
-            'instant_booking', 'additional_info', 'created_at', 'updated_at','stopovers','price'
+            'instant_booking', 'additional_info', 'created_at', 'updated_at','stopovers','price','status','passengers'
         ]
         
+    def get_passengers(self, ride):
+        bookings = BookRide.objects.filter(ride=ride)
+        return BookedPassengerSerializer(bookings, many=True).data
+    
     def generate_short(self, name):
         if not name:
             return ""

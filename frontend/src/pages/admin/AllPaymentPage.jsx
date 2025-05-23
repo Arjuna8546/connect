@@ -1,34 +1,33 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react'
+import { admingetallpayements } from '../../Endpoints/AdminAPI'
 import Header from "../../components/admin/othercomponet/Header";
 import Sidebar from "../../components/admin/othercomponet/Sidebar";
 import Pagination from "../../components/user/othercomponent/Pagination";
-import BookingManagement from "../../components/admin/allbookrides/BookingManagement";
-import { admingetallbookings } from "../../Endpoints/AdminAPI";
+import PaymentManagement from '../../components/admin/allpayments/PaymentManagement';
 
 
 
-const AllBookingsPage = () => {
+const AllPaymentPage = () => {
 
-    const[bookings,setBookings] = useState([])
+    const[payments,setPayments] = useState([])
     const [current, setPage] = useState(1)
     const [total, setTotal] = useState()
-    const [status, setStatus] = useState("active");
+    const [status, setStatus] = useState("succeeded");
 
     useEffect(() => {
-        const handleGetRides = async () => {
+        const handleGetPayments = async () => {
 
-            const response = await admingetallbookings(current,status);
+            const response = await admingetallpayements(current,status);
             if (response?.data?.results?.success === true) {
-                setBookings(response.data.results.bookings);
+                setPayments(response.data.results.payments);
                 setTotal(Math.ceil(response.data.count / 2))
             }
 
         };
 
-        handleGetRides();
+        handleGetPayments();
     }, [current,status]);
+    
     return (
         <>
             <link
@@ -40,7 +39,7 @@ const AllBookingsPage = () => {
                 <div className="flex flex-1 relative pt-[104px]">
                     <Sidebar />
                     <div className="flex-1 overflow-auto">
-                        <BookingManagement bookings={bookings} setStatus={setStatus}/>
+                        <PaymentManagement payments={payments} setStatus={setStatus}/>
                     </div>
 
                 </div>
@@ -54,4 +53,4 @@ const AllBookingsPage = () => {
     );
 };
 
-export default AllBookingsPage;
+export default AllPaymentPage;

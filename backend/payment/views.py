@@ -46,10 +46,10 @@ class CreatePaymentIntentView(APIView):
                 amount=int(amount), 
                 currency=currency,
             )
-            # Save to the database
+            print(intent)
             payment_data = {
                 'amount': amount,
-                'currency': currency,
+                'currency': "INR",
                 'stripe_payment_id': intent['id'],
             }
             serializer = PaymentSerializer(data=payment_data)
@@ -76,7 +76,7 @@ def sent_otp_email(email,otp):
 class ConfirmPaymentView(APIView):
     def post(self, request):
         payment_intent_id = request.data.get('payment_intent_id')
-
+        redirect_status = request.data.get('redirect_status')
         if not payment_intent_id:
             return Response(
                 {'error': 'PaymentIntent ID required'},
@@ -84,70 +84,74 @@ class ConfirmPaymentView(APIView):
             )
 
         payment = get_object_or_404(Payment, stripe_payment_id=payment_intent_id)
+        if redirect_status == "succeeded":
+            try:
+                with transaction.atomic():
+                    payment.success = "succeeded"
+                    payment.save()
 
-        try:
-            with transaction.atomic():
-                payment.success = True
-                payment.save()
+                    if not hasattr(payment, 'book') or not payment.book:
+                        return Response(
+                            {'error': 'No associated booking found for payment'},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+                    otp = generate_otp()
+                    
+                    book = payment.book
+                    
+                    book.book_otp = otp
+                    book.payment_status = 'paid'
+                    book.save()
 
-                if not hasattr(payment, 'book') or not payment.book:
-                    return Response(
-                        {'error': 'No associated booking found for payment'},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-                otp = generate_otp()
-                
-                book = payment.book
-                
-                book.book_otp = otp
-                book.payment_status = 'paid'
-                book.save()
+                    price = book.price
+                    commission = (price * Decimal("0.05")).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+                    balance_price = (price - commission).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
 
-                price = book.price
-                commission = (price * Decimal("0.05")).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
-                balance_price = (price - commission).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
-
-                rider_wallet = book.ride.user.wallet
-                WalletTransaction.objects.create(
-                    wallet=rider_wallet,
-                    transaction_type='credit',
-                    amount=balance_price,
-                    description=(
-                        f'Amount ₹{balance_price} credited by '
-                        f'{book.user.username} for ride from '
-                        f'{book.from_loc_name} to {book.to_loc_name}'
-                    )
-                )
-
-                admin_user = Users.objects.filter(role="admin").first()
-                if admin_user and hasattr(admin_user, 'wallet'):
+                    rider_wallet = book.ride.user.wallet
                     WalletTransaction.objects.create(
-                        wallet=admin_user.wallet,
+                        wallet=rider_wallet,
                         transaction_type='credit',
-                        amount=commission,
+                        amount=balance_price,
                         description=(
-                            f'Amount ₹{commission} credited for ride id '
-                            f'{book.ride.id} commission'
+                            f'Amount ₹{balance_price} credited by '
+                            f'{book.user.username} for ride from '
+                            f'{book.from_loc_name} to {book.to_loc_name}'
                         )
                     )
-                sent_otp_email(book.user.email,otp)
 
-            data = {
-                "from_loc_name": book.from_loc_name,
-                "to_loc_name": book.to_loc_name,
-                "price": price
-            }
+                    admin_user = Users.objects.filter(role="admin").first()
+                    if admin_user and hasattr(admin_user, 'wallet'):
+                        WalletTransaction.objects.create(
+                            wallet=admin_user.wallet,
+                            transaction_type='credit',
+                            amount=commission,
+                            description=(
+                                f'Amount ₹{commission} credited for ride id '
+                                f'{book.ride.id} commission'
+                            )
+                        )
+                    sent_otp_email(book.user.email,otp)
 
-            return Response(
-                {'message': 'Payment marked as paid', 'data': data},
-                status=status.HTTP_200_OK
-            )
+                data = {
+                    "from_loc_name": book.from_loc_name,
+                    "to_loc_name": book.to_loc_name,
+                    "price": price
+                }
 
-        except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+                return Response(
+                    {'message': 'Payment marked as paid', 'data': data},
+                    status=status.HTTP_200_OK
+                )   
+
+            except Exception as e:
+                return Response({'error': f'An error occurred: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        elif redirect_status == "failed":
+            with transaction.atomic():
+                payment.success = "failed"
+                payment.save()
+            return Response({'message': 'Payment failed'}, status=status.HTTP_400_BAD_REQUEST)
+        
             
 class WalletDetails(APIView):
     def get(self, request, user_id):

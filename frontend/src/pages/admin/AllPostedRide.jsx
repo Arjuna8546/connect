@@ -13,11 +13,11 @@ const AllPostedRide = () => {
     const[rides,setRides] = useState([])
     const [current, setPage] = useState(1)
     const [total, setTotal] = useState()
-
+    const [status, setStatus] = useState("active");
     useEffect(() => {
         const handleGetRides = async () => {
 
-            const response = await admingetallrides(current);
+            const response = await admingetallrides(current,status);
             if (response?.data?.results?.success === true) {
                 setRides(response.data.results.rides.features);
                 setTotal(Math.ceil(response.data.count / 2))
@@ -26,7 +26,7 @@ const AllPostedRide = () => {
         };
 
         handleGetRides();
-    }, [current]);
+    }, [current,status]);
 
     return (
         <>
@@ -39,7 +39,7 @@ const AllPostedRide = () => {
                 <div className="flex flex-1 relative pt-[104px]">
                     <Sidebar />
                     <div className="flex-1 overflow-auto">
-                        <RideManagement rides={rides} />
+                        <RideManagement rides={rides} setStatus={setStatus} />
                     </div>
 
                 </div>
