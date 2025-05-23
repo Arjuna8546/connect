@@ -84,3 +84,20 @@ class VehicleRegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("User does not exist.")
         return value
         
+class AdminDashboardSerializer(serializers.Serializer):
+    total_users = serializers.IntegerField()
+    total_rides = serializers.IntegerField()
+    total_bookings = serializers.IntegerField()
+    active_rides = serializers.IntegerField()
+    today_rides = serializers.IntegerField()
+    earnings = serializers.DecimalField(max_digits=10, decimal_places=2)
+
+    # Charts
+    rides_chart = serializers.ListField()
+    status_chart = serializers.ListField()
+
+    # Recent bookings
+    recent_bookings = serializers.ListField()
+
+    # Active rides
+    active_rides_data = serializers.ListField()

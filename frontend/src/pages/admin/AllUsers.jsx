@@ -8,7 +8,7 @@ import { admingetallusers } from "../../Endpoints/AdminAPI";
 import Pagination from "../../components/user/othercomponent/Pagination";
 
 
-const DashboardLayout = () => {
+const AllUsers = () => {
     const [users, setUsers] = useState([]);
     const [current, setPage] = useState(1)
     const [total, setTotal] = useState()
@@ -72,4 +72,4 @@ const DashboardLayout = () => {
     );
 };
 
-export default DashboardLayout;
+export default AllUsers;

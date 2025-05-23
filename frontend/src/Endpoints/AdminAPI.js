@@ -42,3 +42,8 @@ export const admingetallpayements = (page = 1,status) => {
     let url = `allpayment/?page=${page}&status=${status}`;
     return adminaxios.get(url);
 }
+
+export const admindashboard = (range) => {
+    let url = `dashboard/?range=${range}`;
+    return adminaxios.get(url);
+}

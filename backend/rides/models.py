@@ -2,6 +2,7 @@ from django.contrib.gis.db import models
 from base.models import Users,Vehicles
 from django.conf import settings
 from datetime import time
+from django.utils import timezone
 
 class Ride(models.Model):
     RIDE_STATUS_CHOICE =[
@@ -93,7 +94,7 @@ class BookRide(models.Model):
     book_otp = models.CharField(max_length=5,blank=True,null=True) 
     verified_otp = models.BooleanField(default=False)
     seat_segments = models.ManyToManyField("Seat", blank=True, related_name="held_by_bookings")
-
+    created_at = models.DateTimeField(auto_now_add=True)
     def __str__(self):
         return f"Booking by {self.user.username} for Ride {self.ride.id}"
 

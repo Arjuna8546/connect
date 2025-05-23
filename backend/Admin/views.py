@@ -3,7 +3,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from rest_framework.views import APIView
-from base.models import Users
+from base.models import Users,Wallet
 from payment.models import Payment
 from rides.models import Ride,BookRide
 from rest_framework.response import Response
@@ -19,11 +19,14 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework.exceptions import AuthenticationFailed
-from  base.serializer import CustomTokenObtainPairSerializer,UserRegistrationSerializer
+from  base.serializer import CustomTokenObtainPairSerializer,UserRegistrationSerializer,AdminDashboardSerializer
 from rides.serializer import RideSerializer,BookRideSerializer
 from base.models import Users  
 from .permissions import IsAdmin
 from django.db.models import Q
+from django.utils.timezone import now
+from datetime import timedelta
+from django.db.models import Count, Sum
 
 
 class AdminTokenObtainPairView(TokenObtainPairView):
@@ -323,3 +326,82 @@ class Allpayments(APIView):
             })
         except Exception as e:
             return Response({"success":False,"message":f"An error occured: {str(e)}"},status=status.HTTP_400_BAD_REQUEST)
+
+class AdminDashboard(APIView):
+    def get(self, request):
+        try:
+            range_value = int(request.GET.get("range", 7))
+            admin = Users.objects.filter(role='admin').first()
+            today = now().date()
+            seven_days_ago = today - timedelta(days=6)
+
+            total_users = Users.objects.filter(role='user').count()
+            total_rides = Ride.objects.count()
+            total_bookings = BookRide.objects.count()
+            active_rides = Ride.objects.filter(status="active").count()
+            today_rides = Ride.objects.filter(date=today).count()
+            wallet = Wallet.objects.get(user=admin)
+            earnings = wallet.balance
+
+            rides_chart_data = []
+            for i in range(range_value):
+                day = today - timedelta(days=i)
+                count = Ride.objects.filter(date=day).count()
+                rides_chart_data.append({
+                    "date": day.strftime('%Y-%m-%d'),
+                    "rides": count
+                })
+            rides_chart_data.reverse()
+
+            date_threshold = now() - timedelta(days=range_value)
+            status_counts = BookRide.objects.filter(created_at__gte=date_threshold).values('booking_status').annotate(count=Count('id'))
+            status_chart = [{"status": item['booking_status'], "count": item['count']} for item in status_counts]
+
+            recent_bookings_qs = BookRide.objects.select_related('user', 'ride').order_by('-booking_time')[:5]
+            recent_bookings = [{
+                "id": b.id,
+                "user": b.user.username,
+                "user_profile": getattr(b.user, "profile_url", ""),
+                "from": b.from_loc_name,
+                "to": b.to_loc_name,
+                "price": str(b.price),
+                "ride_start": b.ride.start_location_name,
+                "ride_end": b.ride.destination_location_name,
+                "status": b.booking_status,
+                "payment": b.payment_status,
+                "booking_time": b.booking_time,
+            } for b in recent_bookings_qs]
+
+            active_rides_qs = Ride.objects.filter(status="active").select_related('user').order_by('-date')[:5]
+            active_rides_data = [{
+                "id": r.id,
+                "driver": r.user.username,
+                "driver_profile": getattr(r.user, "profile_url", ""),
+                "start": r.start_location_name,
+                "end": r.destination_location_name,
+                "date": r.date,
+                "time": r.time,
+                "price": r.price,
+                "status": r.status,
+            } for r in active_rides_qs]
+
+            serializer = AdminDashboardSerializer({
+                "total_users": total_users,
+                "total_rides": total_rides,
+                "total_bookings": total_bookings,
+                "active_rides": active_rides,
+                "today_rides": today_rides,
+                "earnings": earnings,
+                "rides_chart": rides_chart_data,
+                "status_chart": status_chart,
+                "recent_bookings": recent_bookings,
+                "active_rides_data": active_rides_data,
+            })
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(
+                {"error": "Something went wrong while generating the admin dashboard.", "details": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
