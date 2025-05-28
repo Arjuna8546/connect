@@ -48,11 +48,10 @@ const PaymentForm = () => {
       <button
         type="submit"
         disabled={!stripe || loading}
-        className={`w-full py-3 rounded-md font-semibold transition-all duration-200 ${
-          loading || !stripe
-            ? "bg-[#9b87f5]/50 text-white cursor-not-allowed"
-            : "bg-[#9b87f5] text-white hover:bg-[#8a73f1]"
-        }`}
+        className={`w-full py-3 rounded-md font-semibold transition-all duration-200 ${loading || !stripe
+          ? "bg-[#9b87f5]/50 text-white cursor-not-allowed"
+          : "bg-[#9b87f5] text-white hover:bg-[#8a73f1]"
+          }`}
       >
         {loading ? "Processing..." : "Pay"}
       </button>

@@ -24,6 +24,10 @@ axiosInstance.interceptors.response.use(
                 window.location.href = "/login";
             }
         }
+        if (error.response?.status === 403 && error.response.data?.detail?.includes("blocked") && !originalRequest.url.includes("/logout")) {
+            window.location.href = "/blocked";
+        }
+
         return Promise.reject(error);
     }
 )

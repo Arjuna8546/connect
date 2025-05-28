@@ -266,7 +266,15 @@ class RideSearchView(APIView):
         if instant_booking == "true":
             filters &= Q(instant_booking=True)
 
-        rides = Ride.objects.filter(filters).select_related("user").prefetch_related("stopover_prices")       
+        start_buffer = start_point_geom.buffer(0.05)
+        end_buffer = end_point_geom.buffer(0.05)
+
+        rides = Ride.objects.filter(filters).filter(
+            Q(start_location__within=start_buffer) |
+            Q(destination_location__within=end_buffer) |
+            Q(stopover_prices__stop_location__within=start_buffer) |
+            Q(stopover_prices__stop_location__within=end_buffer)
+        ).select_related("user").prefetch_related("stopover_prices").distinct()       
         
         rides = rides.filter(
             (

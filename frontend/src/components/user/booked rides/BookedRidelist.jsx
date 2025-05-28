@@ -45,7 +45,7 @@ export default function BookedRidelist() {
             }
         }
         handleEffect(user?.user?.id, status)
-    }, [user?.user?.id, status, selectedDate])
+    }, [user?.user?.id, status, selectedDate,showPayment])
 
     const handleCancel = (id) => {
         setCancelId(id)

@@ -296,7 +296,7 @@ class AllBook(APIView):
         try:
             stats = request.GET.get("status",'active')
             bookings = BookRide.objects.filter(booking_status=stats).order_by('-id')
-
+            
             paginator = PageNumberPagination()
             paginator.page_size = 2
             result_page = paginator.paginate_queryset(bookings, request)

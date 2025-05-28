@@ -152,3 +152,8 @@ export const finishride = (formBody) => axios.post(
     'ride/finish/',
     formBody
 )
+
+export const walletPayment = (formBody) => axios.post(
+    'payment/paywallet/',
+    formBody
+)

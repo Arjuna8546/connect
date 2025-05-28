@@ -31,7 +31,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG")
 
-ALLOWED_HOSTS = ['192.168.44.43', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['192.168.44.201', '127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -74,7 +74,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware'
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'base.middleware.CheckBlockedUserMiddleware'
 ]
 
 CORS_ALLOWED_ORIGINS = [

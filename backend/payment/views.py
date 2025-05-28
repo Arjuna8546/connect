@@ -15,6 +15,7 @@ import os
 import random
 from dotenv import load_dotenv
 from decimal import Decimal, ROUND_DOWN
+from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
 
@@ -46,7 +47,6 @@ class CreatePaymentIntentView(APIView):
                 amount=int(amount), 
                 currency=currency,
             )
-            print(intent)
             payment_data = {
                 'amount': amount,
                 'currency': "INR",
@@ -177,6 +177,108 @@ class WalletDetails(APIView):
             "balance": wallet.balance,
             "transaction": serializer.data
         })
+        
+class WalletPayment(APIView):
+    def post(self, request):
+        try:
+            amount = Decimal(request.data.get("amount"))
+            user_id = request.data.get("user_id")
+            book_id = request.data.get("book_id")
+
+            user = get_object_or_404(Users, id=user_id)
+            book = get_object_or_404(BookRide, id=book_id)
+
+            try:
+                wallet = Wallet.objects.get(user=user)
+            except Wallet.DoesNotExist:
+                return Response({"success": False, "message": "Wallet not found for user"}, status=status.HTTP_404_NOT_FOUND)
+            if wallet.balance < amount:
+                return Response({"success": False, "message": "Insufficient wallet balance"}, status=status.HTTP_400_BAD_REQUEST)
+
+            with transaction.atomic():
+
+                WalletTransaction.objects.create(
+                    wallet=wallet,
+                    transaction_type='debit',
+                    amount=amount,
+                    description=f'Booking payment from {book.from_loc_name} to {book.to_loc_name}'
+                )
+                try:
+                    Payment.objects.create(
+                        amount=amount,
+                        user=user,
+                        book=book,
+                        success='succeeded',
+                        wallet_payment_id=f'wallet{user_id}book{book_id}time{timezone.now()}'
+                    )
+                except Exception as e:
+                    raise Exception(f"Payment creation failed: {str(e)}")
+
+                try:
+                    otp = generate_otp()
+                    book.book_otp = otp
+                    book.payment_status = 'paid'
+                    book.save()
+                except Exception as e:
+                    raise Exception(f"Booking update failed: {str(e)}")
+
+                try:
+                    price = book.price
+                    commission = (price * Decimal("0.05")).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+                    balance_price = (price - commission).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+                except Exception as e:
+                    raise Exception(f"Commission calculation failed: {str(e)}")
+
+                try:
+                    rider_wallet = book.ride.user.wallet
+                    rider_wallet.balance += balance_price
+                    rider_wallet.save()
+
+                    WalletTransaction.objects.create(
+                        wallet=rider_wallet,
+                        transaction_type='credit',
+                        amount=balance_price,
+                        description=(
+                            f'Amount ₹{balance_price} credited by '
+                            f'{book.user.username} for ride from {book.from_loc_name} to {book.to_loc_name}'
+                        )
+                    )
+                except Exception as e:
+                    raise Exception(f"Rider wallet credit failed: {str(e)}")
+
+                try:
+                    admin_user = Users.objects.filter(role="admin").first()
+                    if admin_user and hasattr(admin_user, 'wallet'):
+                        admin_wallet = admin_user.wallet
+                        admin_wallet.balance += commission
+                        admin_wallet.save()
+
+                        WalletTransaction.objects.create(
+                            wallet=admin_wallet,
+                            transaction_type='credit',
+                            amount=commission,
+                            description=f'Amount ₹{commission} credited as commission for ride ID {book.ride.id}'
+                        )
+                except Exception as e:
+                    raise Exception(f"Admin commission credit failed: {str(e)}")
+
+                try:
+                    sent_otp_email(book.user.email, otp)
+                except Exception as e:
+                    raise Exception(f"OTP email sending failed: {str(e)}")
+
+                return Response({
+                    "success": True,
+                    "message": "Wallet payment successful",
+                    "data": {
+                        "from_loc_name": book.from_loc_name,
+                        "to_loc_name": book.to_loc_name,
+                        "price": str(price)
+                    }
+                }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"success": False, "message": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         
 class Allpayments(APIView):
