@@ -14,7 +14,7 @@ import { setUser, setVehicles } from "../../../store/slices/UserSlice";
 import toast from "react-hot-toast";
 
 
-const LoginForm = ({ handleSubmit }) => {
+const LoginForm = ({ handleSubmit,loading }) => {
 
     const nav = useNavigate()
 
@@ -138,9 +138,10 @@ const LoginForm = ({ handleSubmit }) => {
                 </div>
                 <button
                      type="submit"
+                     disabled={loading}
                     className="px-0 py-3 text-xs font-bold text-center text-black uppercase bg-white cursor-pointer rounded-[30px] tracking-[2.52px] w-[393px] max-md:w-full max-md:max-w-full transition-all duration-300 hover:shadow-[0_0_15px_4px_rgba(255,255,255,0.2)]"
                 >
-                    log in
+                    {loading ? "Logging..." : "Login"}
                 </button>
                 <p className="mt-3 text-xs text-gray-400">
                     Don't have an account?{" "}

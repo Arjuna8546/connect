@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import FilterOption from "./FilterOption";
 
-const FilterPanel = ({filters,setFilters, handleApply}) => {
+const FilterPanel = ({ filters, setFilters, handleApply, filterLoading }) => {
 
   const handleChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -29,16 +29,20 @@ const FilterPanel = ({filters,setFilters, handleApply}) => {
         ))}
       </div>
       <button
-       className="px-5 py-2.5 mt-5 text-xs font-bold text-black uppercase bg-white rounded-[30px] tracking-[2.52px] w-full hover:bg-gray-100 transition-colors"
-       onClick={() => setFilters({ gender: "", minPrice: "", maxPrice: "", instantBooking: "" })}>
+        className="px-5 py-2.5 mt-5 text-xs font-bold text-black uppercase bg-white rounded-[30px] tracking-[2.52px] w-full hover:bg-gray-100 transition-colors"
+        onClick={() => setFilters({ gender: "", minPrice: "", maxPrice: "", instantBooking: "" })}>
         Reset
       </button>
 
       <button
         onClick={handleApply}
-        className="px-5 py-2.5 mt-5 text-xs font-bold text-black uppercase bg-white rounded-[30px] tracking-[2.52px] w-full hover:bg-gray-100 transition-colors"
+        disabled={filterLoading}
+        className={`px-5 py-2.5 mt-5 text-xs font-bold uppercase rounded-[30px] tracking-[2.52px] w-full transition-colors
+    ${filterLoading
+            ? "bg-zinc-400 text-white cursor-not-allowed"
+            : "bg-white text-black hover:bg-gray-100 cursor-pointer"}`}
       >
-        Apply
+        {filterLoading ? "Applying..." : "Apply"}
       </button>
     </div>
   );

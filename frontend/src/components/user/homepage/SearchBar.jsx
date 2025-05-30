@@ -3,7 +3,7 @@ import { CalendarIcon, UserIcon } from "./Icons";
 import { searchLocation } from "../../../Endpoints/MapBoxAPI";
 import debounce from "lodash.debounce";
 
-export const SearchBar = ({ handleClick }) => {
+export const SearchBar = ({ handleClick, loading }) => {
     const [selectedDate, setSelectedDate] = useState("")
     const [num, setNum] = useState(1)
     const [startPoint, setStartPoint] = useState("")
@@ -179,9 +179,23 @@ export const SearchBar = ({ handleClick }) => {
                     className="bg-transparent w-full text-sm font-bold uppercase text-stone-300 tracking-[2.73px] placeholder:text-stone-500 focus:outline-none"
                 />
             </div>
-
-            <button onClick={() => handleClick({formBody:{ "start_point": startPoint, "end_point": endPoint, "date": selectedDate, "passenger_count": num }})} className="w-44 text-base font-bold text-black uppercase bg-white shadow-2xl h-[76px] rounded-[48px] tracking-[3.15px] max-md:w-full">
-                search
+            <button
+                onClick={() =>
+                    handleClick({
+                        formBody: {
+                            start_point: startPoint,
+                            end_point: endPoint,
+                            date: selectedDate,
+                            passenger_count: num,
+                        },
+                    })
+                }
+                className={`w-44 text-base font-bold uppercase shadow-2xl h-[76px] rounded-[48px] tracking-[3.15px] max-md:w-full
+                ${loading
+                        ? "bg-zinc-400 text-white cursor-not-allowed"
+                        : "bg-white text-black hover:bg-zinc-100 cursor-pointer"}`}
+            >
+                {loading ? "Searching..." : "Search"}
             </button>
         </div>
     );

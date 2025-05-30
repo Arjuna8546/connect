@@ -10,6 +10,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { StaticDatePicker } from "@mui/x-date-pickers/StaticDatePicker";
 import { StaticTimePicker } from "@mui/x-date-pickers/StaticTimePicker";
 import { useLocation, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const darkTheme = createTheme({
     palette: {
@@ -30,9 +31,28 @@ const DateTime = () => {
     const handleSubmit = () => {
         const date = selectedDate?.format("YYYY-MM-DD");
         const time = selectedTime?.format("HH:mm");
+
+        if (!date || !time) {
+            toast.error("Please select both date and time");
+            return;
+        }
+
+        const selectedDateTime = new Date(`${date}T${time}`);
+        const now = new Date();
+
+        if (selectedDateTime < now) {
+            toast.error("Selected date and time cannot be in the past");
+            return;
+        }
+
         const combined = `${date} ${time}`;
         setCombinedOutput(combined);
-        nav('/postride/count',{state:{...states,date_time:{date:date,time:time}}})
+        nav('/postride/count', {
+            state: {
+                ...states,
+                date_time: { date, time }
+            }
+        });
     };
 
     return (

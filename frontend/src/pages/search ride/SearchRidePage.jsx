@@ -14,39 +14,51 @@ const RideSearchPage = () => {
     maxPrice: "",
     instantBooking: "",
   });
-  
+
   const [rides, setRides] = useState([]);
   const [savedFormBody, setSavedFormBody] = useState({});
+  const [loading, setLoading] = useState(false)
+  const [filterLoading, setFilterLoading] = useState(false)
 
   const getPathParam = () => {
     return Object.entries(filters)
       .map(([key, value]) => `${key}=${value === "" ? "" : value}`)
       .join("&");
   };
-  
+
 
   const handleSearch = async ({ formBody }) => {
+    setLoading(true)
     const pathParam = getPathParam();
-    setSavedFormBody(formBody); 
-  
+    setSavedFormBody(formBody);
+
     try {
-      const res = await search(formBody, pathParam); 
+      const res = await search(formBody, pathParam);
       if (res) {
         setRides(res?.data?.data || []);
       }
     } catch (err) {
       toast.error(err?.response?.data?.error)
+    } finally {
+      setLoading(false)
     }
   };
-  
 
-  const handleApply = () => {
+
+  const handleApply = async () => {
     const pathParam = getPathParam();
     if (Object.keys(savedFormBody).length > 0) {
-      handleSearch({ formBody: savedFormBody });
+      try {
+        setFilterLoading(true);
+        await handleSearch({ formBody: savedFormBody });
+      } catch (error) {
+        toast.error("Search failed:", error);
+      } finally {
+        setFilterLoading(false);
+      }
     }
   };
-  
+
   return (
     <div className="w-full px-8 min-h-screen bg-black text-white">
 
@@ -55,12 +67,12 @@ const RideSearchPage = () => {
       </div>
 
       <div className="w-full px-4 sm:px-6 md:px-8">
-        <SearchBar handleClick={handleSearch}/>
+        <SearchBar handleClick={handleSearch} loading={loading} />
       </div>
       <div className="flex flex-col lg:flex-row w-full px-4 sm:px-6 md:px-8 gap-4 py-4">
 
         <div className="w-full lg:max-w-sm">
-          <FilterPanel filters={filters} setFilters={setFilters} handleApply={handleApply}/>
+          <FilterPanel filters={filters} setFilters={setFilters} handleApply={handleApply} filterLoading={filterLoading} />
         </div>
 
 
@@ -69,7 +81,7 @@ const RideSearchPage = () => {
           style={{
             maxHeight: '70vh',
             overflowY: 'auto',
-            scrollbarWidth: 'none', 
+            scrollbarWidth: 'none',
             msOverflowStyle: 'none',
           }}
         >

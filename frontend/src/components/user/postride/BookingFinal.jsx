@@ -9,6 +9,7 @@ export const BookingFinal = ({ state }) => {
   const [instantBooking, setInstantBooking] = useState(false);
   const [reviewRequests, setReviewRequests] = useState(true);
   const [additionalInfo, setAdditionalInfo] = useState("");
+  const [loading, setLoading] = useState(false)
 
   const handleInstantBookingChange = () => {
     setInstantBooking(true);
@@ -25,7 +26,7 @@ export const BookingFinal = ({ state }) => {
     let stopovers = [];
 
     input_data["stopever"]["Final_stopovers"].forEach((stop, idx) => {
- 
+
       const stopoverPrice = input_data["stopover_prices"].find(price =>
         price["start"] === input_data["postride"]["start_loc"] &&
         price["stop"] === stop["name"]
@@ -40,10 +41,10 @@ export const BookingFinal = ({ state }) => {
           "type": "Point",
           "coordinates": [stop["lon"], stop["lat"]]
         },
-        "price": stopoverPrice ? stopoverPrice["price"] : 0, 
-        "position": idx + 1 ,
-        "duration":duration,
-        "distance":distance,
+        "price": stopoverPrice ? stopoverPrice["price"] : 0,
+        "position": idx + 1,
+        "duration": duration,
+        "distance": distance,
       });
     });
     stopovers.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
@@ -92,18 +93,19 @@ export const BookingFinal = ({ state }) => {
       "instant_booking": instantBooking,
       "additional_info": additionalInfo,
       "stopovers": stopovers,
-      "price":finalPrice,
+      "price": finalPrice,
     };
 
-    const handleAddPost=async(payload)=>{
-      try{
+    const handleAddPost = async (payload) => {
+      setLoading(true)
+      try {
         const res = await ridepost(payload)
-        if(res.data.success===true){
+        if (res.data.success === true) {
           toast.success(res.data.message)
           nav('/')
         }
       }
-      catch(error){
+      catch (error) {
         const resData = error?.response?.data;
 
         if (resData?.errors) {
@@ -116,7 +118,10 @@ export const BookingFinal = ({ state }) => {
           toast.error("Something went wrong. Please try again.");
         }
       }
-    } 
+      finally {
+        setLoading(false)
+      }
+    }
     handleAddPost(payload);
   };
 
@@ -168,10 +173,13 @@ export const BookingFinal = ({ state }) => {
         className="box-border p-2.5 text-xs font-medium leading-5 rounded-2xl bg-stone-950 text-zinc-500 w-[90%] h-[108px]"
       />
 
-      <button className="text-base font-bold text-black uppercase bg-white border border-solid shadow-2xl border-zinc-800 h-[55px] rounded-[30px] w-[90%]"
+      <button
+        className={`text-base font-bold uppercase h-[55px] rounded-[30px] w-[90%] border border-solid shadow-2xl 
+        ${loading ? "bg-zinc-400 text-white cursor-not-allowed" : "bg-white text-black border-zinc-800"}`}
         onClick={() => handleSubmit()}
+        disabled={loading}
       >
-        publish ride
+        {loading ? "Posting Ride..." : "Post Ride"}
       </button>
     </section>
   );

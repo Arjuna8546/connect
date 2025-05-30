@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Logo from "../components/user/othercomponent/Logo";
 import LoginForm from "../components/user/loginpage/LoginForm";
 import { getVehicles, login } from "../Endpoints/APIs";
@@ -12,8 +12,10 @@ import toast from "react-hot-toast";
 const LoginPage = () => {
     const dispatch=useDispatch()
     const nav=useNavigate()
+    const [loading,setLoading] = useState(false)
 
     const handleLogin = async(values,setSubmitting) => {
+        setLoading(true)
         try {
             const response = await login(values)
             if (response?.data?.success === true) {
@@ -34,6 +36,7 @@ const LoginPage = () => {
         }
         finally {
              setSubmitting(false);
+             setLoading(false);
         }
     }
     return (
@@ -52,7 +55,7 @@ const LoginPage = () => {
                 </div>
                 <section className="relative p-10 rounded-3xl backdrop-blur-[7.5px] bg-zinc-900 bg-opacity-50 w-[752px] max-md:p-8 max-md:max-w-[600px] max-md:w-[90%] max-sm:p-5">
                     <Logo />
-                    <LoginForm handleSubmit={handleLogin}/>
+                    <LoginForm handleSubmit={handleLogin} loading={loading} setLoading={setLoading}/>
                 </section>
             </main>
         </>

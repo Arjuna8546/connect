@@ -4,6 +4,7 @@ import { Navigation } from "../../components/user/othercomponent/Navigation";
 import { LocationPanel } from "../../components/user/postride/LocationPanel";
 import MapComponent from "../../components/user/postride/MapComponent";
 import { useLocation, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const LocationSelector = () => {
     const location = useLocation();
@@ -37,16 +38,35 @@ const LocationSelector = () => {
     };
 
     const handleSelectClick = () => {
-        if (latestMarker.current) {
-            if (step === "pickup") {
-                setPickupCoordinates(latestMarker.current);
-                setStep("dropoff");
-            } else {
-                setDropoffCoordinates(latestMarker.current);
-                nav('/postride/routeselector',{ state: { postride: postride,locationselected :{"Final_pickup": pickupCoordinates,"Final_dropoff":latestMarker.current} } })
-            }
+        if (!latestMarker.current) {
+            toast.error("Please select a location on the map.For Pickup Exact Point");
+            return;
+        }
+
+        if (step === "pickup") {
+            setPickupCoordinates(latestMarker.current);
+            setStep("dropoff");
         } else {
-            alert("Please select a location on the map.");
+            const isSameAsPickup =
+                pickupCoordinates &&
+                pickupCoordinates.lat === latestMarker.current.lat &&
+                pickupCoordinates.lng === latestMarker.current.lng;
+
+            if (isSameAsPickup) {
+                toast.error("Please select a location on the map.For Drop off Exact Point");
+                return;
+            }
+
+            setDropoffCoordinates(latestMarker.current);
+            nav("/postride/routeselector", {
+                state: {
+                    postride: postride,
+                    locationselected: {
+                        Final_pickup: pickupCoordinates,
+                        Final_dropoff: latestMarker.current,
+                    },
+                },
+            });
         }
     };
 
