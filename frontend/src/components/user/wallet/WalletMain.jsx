@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Wallet, TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
 import { wallet } from "../../../Endpoints/APIs";
 import { useSelector } from "react-redux";
-import toast from "react-hot-toast";
 import Pagination from "../othercomponent/Pagination";
+import { showError } from "../../../utils/toastUtils";
 
 
 const WalletMain = () => {
@@ -24,7 +24,7 @@ const WalletMain = () => {
           setTotalPages(Math.ceil(res.data.count / 5))
         }
       } catch (error) {
-        toast.error(error?.response?.data?.results.error || "Something went wrong")
+        showError(error?.response?.data?.results.error || "Something went wrong")
       }
     }
     getWallet();

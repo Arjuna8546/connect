@@ -8,7 +8,8 @@ import VerifyUserManagement from "../../components/admin/verifyrequestpage/Verif
 import VerifyRequestModal from "../../components/admin/verifyrequestpage/VerifyRequestModal";
 import { adminverifiedusers } from "../../Endpoints/AdminAPI";
 import { updateuser } from "../../Endpoints/APIs";
-import toast from "react-hot-toast";
+import { showError, showSuccess } from "../../utils/toastUtils";
+
 
 const VerifyRequest = () => {
     const [users, setUsers] = useState([]);
@@ -29,11 +30,11 @@ const VerifyRequest = () => {
             });
     
             if (res?.data?.success) {
-                toast.success("user verified");
+               showSuccess("user verified");
                 fetchUsers();
             } 
         } catch (error) {
-            toast.error("Error during approval:", error);
+           showError("Error during approval:", error);
         }
     }
     const onReject =async(user)=>{
@@ -44,11 +45,11 @@ const VerifyRequest = () => {
             });
     
             if (res?.data?.success) {
-                toast.error("user verification rejected");
+                showSuccess("user verification rejected");
                 fetchUsers();
             } 
         } catch (error) {
-            toast.error("Error during approval:", error);
+            showError("Error during approval:", error);
         }
     }
 

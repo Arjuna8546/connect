@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
-import toast from "react-hot-toast";
 import Logo from "../othercomponent/Logo";
+import { showError } from "../../../utils/toastUtils";
 
 const OtpVerificationModal = ({ email, isOpen, onClose, onOtpSubmit }) => {
   const [otp, setOtp] = useState(["", "", "", "", ""]);
@@ -26,7 +26,7 @@ const OtpVerificationModal = ({ email, isOpen, onClose, onOtpSubmit }) => {
   const handleSubmit = () => {
     const otpCode = otp.join("");
     if (otpCode.length !== 5) {
-      toast.error("Please enter a valid 5-digit code.");
+      showError("Please enter a valid 5-digit code.");
       return;
     }
     onOtpSubmit(otpCode); 

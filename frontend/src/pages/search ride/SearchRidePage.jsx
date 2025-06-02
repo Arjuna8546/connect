@@ -5,7 +5,7 @@ import { SearchBar } from "../../components/user/homepage/SearchBar";
 import FilterPanel from "../../components/user/search ride/FilterPanel";
 import RideList from "../../components/user/search ride/RideList";
 import { search } from "../../Endpoints/APIs";
-import toast from "react-hot-toast";
+import { showError } from "../../utils/toastUtils";
 
 const RideSearchPage = () => {
   const [filters, setFilters] = useState({
@@ -38,7 +38,7 @@ const RideSearchPage = () => {
         setRides(res?.data?.data || []);
       }
     } catch (err) {
-      toast.error(err?.response?.data?.error)
+      showError(err?.response?.data?.error)
     } finally {
       setLoading(false)
     }
@@ -52,7 +52,7 @@ const RideSearchPage = () => {
         setFilterLoading(true);
         await handleSearch({ formBody: savedFormBody });
       } catch (error) {
-        toast.error("Search failed:", error);
+        showError("Search failed:", error);
       } finally {
         setFilterLoading(false);
       }

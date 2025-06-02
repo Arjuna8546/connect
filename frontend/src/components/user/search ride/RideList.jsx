@@ -3,7 +3,7 @@ import RideCard from "./RideCard";
 import SeatBookingModal from "./SeatBookingModal";
 import { seat, updateSeat } from "../../../Endpoints/APIs";
 import { useSelector } from "react-redux";
-import toast from "react-hot-toast";
+import { showError, showSuccess } from "../../../utils/toastUtils";
 
 const RideList = ({ rides }) => {
   const [detailModal, setDetailModal] = useState(false)
@@ -14,7 +14,7 @@ const RideList = ({ rides }) => {
   const handleBook = async (bookingDetails) => {
     try {
       if (!user?.user?.id) {
-        toast.error("User not logged in.");
+        showError("User not logged in.");
         return;
       }
       const segment_ids = bookingDetails.flatMap((bookDetail) => bookDetail.segment_ids || []);
@@ -23,13 +23,13 @@ const RideList = ({ rides }) => {
         segment_ids
       });
       if (res?.data?.success === true) {
-        toast.success(res.data.message || "Booking successful!");
+        showSuccess(res.data.message || "Booking successful!");
       } else {
-        toast.error(res?.data?.message || "Booking failed. Please try again.");
+        showError(res?.data?.message || "Booking failed. Please try again.");
       }
 
     } catch (error) {
-      toast.error(error?.response?.data?.message);
+      showError(error?.response?.data?.message);
     }
   };
 
@@ -40,10 +40,10 @@ const RideList = ({ rides }) => {
       if (res?.data?.success === true && Array.isArray(res.data.data)) {
         setSeatData(res.data.data);
       } else {
-        console.error("Unexpected response format or failed fetch:", res?.data);
+       showError(`Unexpected response format or failed fetch:, ${res?.data}`);
       }
     } catch (error) {
-      console.error("Error fetching seat details:", error);
+      showError(`Error fetching seat details:", ${error}`);
     }
   }
 

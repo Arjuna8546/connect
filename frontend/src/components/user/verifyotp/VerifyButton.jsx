@@ -1,7 +1,7 @@
 import React from "react";
 import { verify } from "../../../Endpoints/APIs";
-import toast from "react-hot-toast";
 import {useNavigate} from 'react-router-dom'
+import { showError, showSuccess } from "../../../utils/toastUtils";
 
 function VerifyButton({ otp, userDetail }) {
   const nav = useNavigate()
@@ -10,13 +10,12 @@ function VerifyButton({ otp, userDetail }) {
       const response = await verify({ otp: otp, ...userDetail })
       if (response?.data?.success===true) {
   
-        toast.success(response?.data?.message)
+        showSuccess(response?.data?.message)
         nav('/login')
       }
     }
     catch(error){
-      console.log(error)
-      toast.error(error?.response?.data?.message)
+      showError(error?.response?.data?.message)
     }
   }
   return (

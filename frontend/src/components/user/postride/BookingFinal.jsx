@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 import { ridepost } from "../../../Endpoints/APIs";
-import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { showError, showSuccess } from "../../../utils/toastUtils";
 
 export const BookingFinal = ({ state }) => {
   const nav = useNavigate()
@@ -101,7 +101,7 @@ export const BookingFinal = ({ state }) => {
       try {
         const res = await ridepost(payload)
         if (res.data.success === true) {
-          toast.success(res.data.message)
+          showSuccess(res.data.message)
           nav('/')
         }
       }
@@ -111,11 +111,11 @@ export const BookingFinal = ({ state }) => {
         if (resData?.errors) {
           const firstErrorKey = Object.keys(resData.errors)[0];
           const firstErrorMsg = resData.errors[firstErrorKey][0];
-          toast.error(firstErrorMsg);
+          showError(firstErrorMsg);
         } else if (resData?.error) {
-          toast.error(resData.error);
+          showError(resData.error);
         } else {
-          toast.error("Something went wrong. Please try again.");
+         showError("Something went wrong. Please try again.");
         }
       }
       finally {

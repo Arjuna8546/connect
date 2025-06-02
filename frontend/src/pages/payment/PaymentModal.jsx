@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { payement_intent, walletPayment } from "../../Endpoints/APIs";
-import toast from "react-hot-toast";
 import { Wallet } from "lucide-react";
+import { showError, showSuccess } from "../../utils/toastUtils";
 
 const PaymentModal = ({ bookId, amount, onClose }) => {
   const [loading, setLoading] = useState(false);
@@ -30,11 +30,10 @@ const PaymentModal = ({ bookId, amount, onClose }) => {
           },
         });
       } else {
-        toast.error("Error creating payment intent.");
+        showError("Error creating payment intent.");
       }
     } catch (error) {
-      console.error("Error:", error);
-      toast.error("Error creating payment intent.");
+      showError("Error creating payment intent.");
     } finally {
       setLoading(false);
     }
@@ -52,15 +51,14 @@ const PaymentModal = ({ bookId, amount, onClose }) => {
       });
 
       if (res?.data?.success) {
-        toast.success("Wallet payment successful!");
+        showSuccess("Wallet payment successful!");
         console.log(res);
       } else {
-        toast.error(res?.data?.message || "Wallet payment failed!");
+        showError(res?.data?.message || "Wallet payment failed!");
       }
 
     } catch (err) {
-      console.error("Wallet payment error:", err);
-      toast.error(
+      showError(
         err?.response?.data?.message ||
         "An unexpected error occurred during wallet payment"
       );

@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { updateuser } from "../../../Endpoints/APIs";
 import { useDispatch } from "react-redux";
 import { setUser } from "../../../store/slices/UserSlice";
-import toast from "react-hot-toast";
+import { showError, showSuccess } from "../../../utils/toastUtils";
 
 export const ProfileHeader = ({ user_id, username, profile_url, is_verified }) => {
   const dispatch = useDispatch()
@@ -28,11 +28,11 @@ export const ProfileHeader = ({ user_id, username, profile_url, is_verified }) =
         const res = await updateuser({ "user_id": user_id, "profile_url": data.secure_url })
         if (res.data?.success === true) {
           dispatch(setUser(res?.data?.userDetails))
-          toast.success(res?.data?.message)
+          showSuccess(res?.data?.message)
         }
 
       } catch (error) {
-        console.error("Upload error:", error);
+        showError(error);
       }
     }
   };

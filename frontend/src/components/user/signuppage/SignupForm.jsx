@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import toast from "react-hot-toast";
 import PasswordInput from '../loginpage/Passwordinput';
 import { register } from '../../../Endpoints/APIs';
 
 import VerificationCodeModal from '../../../pages/VerificationCodeModal';
 import { useNavigate } from 'react-router-dom';
+import { showError, showSuccess } from '../../../utils/toastUtils';
 
 
 function SignupForm() {
@@ -58,7 +58,7 @@ function SignupForm() {
                 const response = await register(filteredValues)
                 if (response?.data?.success === true) {
 
-                    toast.success(response?.data?.message)
+                    showSuccess(response?.data?.message)
 
                     setIsModalOpen(true);
 
@@ -68,15 +68,15 @@ function SignupForm() {
                 const resData = error?.response?.data;
 
                 if (resData?.message) {
-                    toast.error(resData.message);
+                    showError(resData.message);
                 }
 
                 else if (resData?.errors) {
                     const firstErrorKey = Object.keys(resData.errors)[0];
                     const firstErrorMsg = resData.errors[firstErrorKey][0];
-                    toast.error(firstErrorMsg);
+                   showError(firstErrorMsg);
                 } else {
-                    toast.error("Something went wrong. Please try again.");
+                    showError("Something went wrong. Please try again.");
                 }
             }
             finally {

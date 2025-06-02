@@ -1,4 +1,5 @@
 import { blockuser } from "../../../Endpoints/AdminAPI";
+import { showError } from "../../../utils/toastUtils";
 
 const UserCard = ({ id, username, profile_url, email, phone_no, status, hasNotification, setUsers }) => {
   const handleSubmit = async () => {
@@ -13,10 +14,10 @@ const UserCard = ({ id, username, profile_url, email, phone_no, status, hasNotif
           )
         );
       } else {
-        console.error("Failed to update user status:", res?.data?.message);
+        showError(`Failed to update user status:", ${res?.data?.message}`);
       }
     } catch (error) {
-      console.error("Error updating user status:", error);
+      showError(`Error updating user status:", ${error}`);
     }
   };
 

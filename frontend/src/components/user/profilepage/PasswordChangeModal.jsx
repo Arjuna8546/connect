@@ -3,9 +3,9 @@
 import React from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import toast from "react-hot-toast";
 import { restpassword } from "../../../Endpoints/APIs";
 import { useSelector } from "react-redux";
+import { showError, showSuccess } from "../../../utils/toastUtils";
 
 const PasswordChangeModal = ({ isOpen, onClose }) => {
     const user = useSelector(state => (state.user))
@@ -33,14 +33,14 @@ const PasswordChangeModal = ({ isOpen, onClose }) => {
                 console.log(values)
                 const response = await restpassword({ ...values, "id": user.user.id })
                 if (response?.data?.success === true) {
-                    toast.success("Password changed successfully");
+                    showSuccess("Password changed successfully");
                     resetForm();
                     onClose();
                 }
             } catch (error) {
                 const errorMessage =
                     error?.response?.data?.error || "Failed to change password";
-                toast.error(errorMessage);
+                showError(errorMessage);
             } finally {
                 setSubmitting(false);
             }

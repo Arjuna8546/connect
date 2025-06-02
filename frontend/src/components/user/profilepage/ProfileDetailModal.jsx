@@ -1,10 +1,10 @@
 import React from "react";
 import { useFormik } from "formik";
-import toast from "react-hot-toast";
 import * as Yup from "yup";
 import { updateuser } from "../../../Endpoints/APIs";
 import { useDispatch } from "react-redux";
 import { setUser } from "../../../store/slices/UserSlice";
+import { showError, showSuccess } from "../../../utils/toastUtils";
 
 const ProfileDetailModal = ({ isOpen = true, onClose, user }) => {
     const dispatch = useDispatch()
@@ -46,7 +46,7 @@ const ProfileDetailModal = ({ isOpen = true, onClose, user }) => {
     
                 if(response?.data?.success===true){
                     dispatch(setUser(response?.data?.userDetails))
-                    toast.success(response?.data?.message)
+                    showSuccess(response?.data?.message)
                     onClose()
                 }
             }
@@ -56,11 +56,11 @@ const ProfileDetailModal = ({ isOpen = true, onClose, user }) => {
                 if (resData?.errors) {
                     const firstErrorKey = Object.keys(resData.errors)[0];
                     const firstErrorMsg = resData.errors[firstErrorKey][0];
-                    toast.error(firstErrorMsg);
+                    showError(firstErrorMsg);
                 } else if (resData?.message) {
-                    toast.error(resData.message);
+                    showError(resData.message);
                 } else {
-                    toast.error("Something went wrong. Please try again.");
+                    showError("Something went wrong. Please try again.");
                 }
             }
             finally {

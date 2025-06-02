@@ -11,7 +11,7 @@ import LoginModal from "./LoginModal";
 import { checkgoogle, getVehicles, google } from "../../../Endpoints/APIs";
 import { useDispatch } from "react-redux";
 import { setUser, setVehicles } from "../../../store/slices/UserSlice";
-import toast from "react-hot-toast";
+import { showError, showSuccess } from "../../../utils/toastUtils";
 
 
 const LoginForm = ({ handleSubmit,loading }) => {
@@ -44,7 +44,7 @@ const LoginForm = ({ handleSubmit,loading }) => {
                 const vehicles = await getVehicles(userDetails.id);
                 if (vehicles?.data?.success === true) {
                     dispatch(setVehicles(vehicles.data.vehicles));
-                    toast.success(`${userDetails.username} login successful`);
+                    showSuccess(`${userDetails.username} login successful`);
                     localStorage.setItem("user_id",userDetails.id)
                     nav("/");
                 }
@@ -61,16 +61,16 @@ const LoginForm = ({ handleSubmit,loading }) => {
             const res = await google(fullUserData);
             
             if (res?.data?.success) {
-              toast.success("Sign up successful!");
+              showSuccess("Sign up successful!");
             } else {
-              toast.error(res?.data?.message || "Sign up failed!");
+              showError(res?.data?.message || "Sign up failed!");
             }    
           } catch (error) {
 
             if (error?.response?.data?.message) {
-              toast.error(error.response.data.message);
+              showError(error.response.data.message);
             } else {
-              toast.error("Something went wrong. Please try again!");
+              showError("Something went wrong. Please try again!");
             }
           }
         }

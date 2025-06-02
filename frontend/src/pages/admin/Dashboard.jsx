@@ -5,7 +5,7 @@ import Header from "../../components/admin/othercomponet/Header";
 import Sidebar from "../../components/admin/othercomponet/Sidebar";
 import { admindashboard } from "../../Endpoints/AdminAPI";
 import DashboardCard from "../../components/admin/dashboardpage/DashboardCard";
-import toast from "react-hot-toast";
+import { showError } from "../../utils/toastUtils";
 
 
 const Dashboard = () => {
@@ -18,14 +18,13 @@ const Dashboard = () => {
                 if (response && response.data) {
                     setData(response.data);
                 } else {
-                    toast.error("No data found in response:", response);
+                    showError("No data found in response:", response);
                 }
             } catch (err) {
-                toast.error("Error fetching dashboard data:", err);
+                showError("Error fetching dashboard data:", err);
             }
         };
         handleGetRides();
-        console.log(range)
     }, [range]);
 
     return (

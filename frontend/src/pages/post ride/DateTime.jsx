@@ -10,7 +10,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { StaticDatePicker } from "@mui/x-date-pickers/StaticDatePicker";
 import { StaticTimePicker } from "@mui/x-date-pickers/StaticTimePicker";
 import { useLocation, useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
+import { showError } from "../../utils/toastUtils";
 
 const darkTheme = createTheme({
     palette: {
@@ -33,7 +33,7 @@ const DateTime = () => {
         const time = selectedTime?.format("HH:mm");
 
         if (!date || !time) {
-            toast.error("Please select both date and time");
+            showError("Please select both date and time");
             return;
         }
 
@@ -41,7 +41,7 @@ const DateTime = () => {
         const now = new Date();
 
         if (selectedDateTime < now) {
-            toast.error("Selected date and time cannot be in the past");
+            showError("Selected date and time cannot be in the past");
             return;
         }
 

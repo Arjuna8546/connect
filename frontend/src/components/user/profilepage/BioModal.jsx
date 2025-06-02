@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { updateuser } from "../../../Endpoints/APIs";
 import { useDispatch } from "react-redux";
 import { setUser } from "../../../store/slices/UserSlice";
-import toast from "react-hot-toast";
+import { showError, showSuccess } from "../../../utils/toastUtils";
 
 const BioModal = ({ isOpen, onClose, user }) => {
     const dispatch = useDispatch()
@@ -13,11 +13,11 @@ const BioModal = ({ isOpen, onClose, user }) => {
           const response = await updateuser({ user_id: user.id, bio });
           if (response?.data?.success === true) {
             dispatch(setUser(response.data.userDetails));
-            toast.success(response?.data?.message);
+            showSuccess(response?.data?.message);
             onClose(); 
           }
         } catch (error) {
-          toast.error("Something went wrong!");
+          showError("Something went wrong!");
         }
       };
       

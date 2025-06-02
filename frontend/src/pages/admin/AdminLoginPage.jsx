@@ -4,8 +4,8 @@ import AdminLoginForm from '../../components/admin/loginpage/AdminLoginForm'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { adminlogin } from '../../Endpoints/AdminAPI'
-import toast from 'react-hot-toast'
 import { setAdmin } from '../../store/slices/AdminSlice'
+import { showError, showSuccess } from '../../utils/toastUtils'
 
 function AdminLoginPage() {
     const dispatch = useDispatch()
@@ -17,13 +17,13 @@ function AdminLoginPage() {
             if (response?.data?.success === true) {
                 console.log(response.data)
                 dispatch(setAdmin(response.data.userDetails))
-                toast.success(`Hey admin ${response.data.userDetails.username} login successfull`)
+                showSuccess(`Hey admin ${response.data.userDetails.username} login successfull`)
                 localStorage.setItem("admin_id",response.data.userDetails.id)
                 nav("/admin/dashboard")
             }
         }
         catch (error) {
-            toast.error(
+            showError(
                 error?.response?.data?.message || "Something went wrong. Please try again."
             );
         }

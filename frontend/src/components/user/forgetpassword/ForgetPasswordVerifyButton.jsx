@@ -1,7 +1,7 @@
 import React from "react";
 import { forgetpasswordverifyotp, verify } from "../../../Endpoints/APIs";
-import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { showError, showSuccess } from "../../../utils/toastUtils";
 
 
 function ForgetPasswordVerifyButton({ otp, userDetail }) {
@@ -12,13 +12,13 @@ function ForgetPasswordVerifyButton({ otp, userDetail }) {
        const response = await forgetpasswordverifyotp({"otp":otp,"email":userDetail.email})
        if (response?.data?.success===true) {
   
-         toast.success(response?.data?.message)
+         showSuccess(response?.data?.message)
          nav('/changepassword',{ state: { email: userDetail.email } })
         
        }
     }
     catch(error){
-      toast.error(error?.response?.data?.message)
+      showError(error?.response?.data?.message)
     }
   }
   return (

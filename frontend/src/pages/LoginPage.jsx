@@ -6,7 +6,8 @@ import { getVehicles, login } from "../Endpoints/APIs";
 import { useDispatch } from "react-redux";
 import { setUser, setVehicles } from "../store/slices/UserSlice";
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
+import { showSuccess } from "../utils/toastUtils";
+
 
 
 const LoginPage = () => {
@@ -23,14 +24,14 @@ const LoginPage = () => {
                 const vehicles = await getVehicles(response.data.userDetails.id)
                 if (vehicles?.data?.success === true) {
                     dispatch(setVehicles(vehicles.data.vehicles))
-                    toast.success(`${response.data.userDetails.username} login successfull`)
+                    showSuccess(`${response.data.userDetails.username} login successfull`)
                     localStorage.setItem("user_id",response.data.userDetails.id)
                     nav("/")
                 }
             }
         }
         catch (error) {
-            toast.error(
+            showSuccess(
                 error?.response?.data?.message || "Something went wrong. Please try again."
             );
         }

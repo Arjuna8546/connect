@@ -8,7 +8,7 @@ import {
   PayPalIcon,
   TimesCircleIcon,
 } from "../dashboardpage/Icon";
-import toast from "react-hot-toast";
+import { showError, showSuccess } from "../../../utils/toastUtils";
 
 const NavItem = ({ icon: Icon, label, onClick }) => (
   <div className="flex gap-5 items-center p-5 border-b border-solid border-b-neutral-800"
@@ -26,15 +26,14 @@ const Sidebar = () => {
     try {
       const response = await logout();
       if (response?.data?.success === true) {
-        toast.success("Logged out successfully");
+       showSuccess("Logged out successfully");
         localStorage.removeItem("admin_id")
         nav("/admin/login");
       } else {
-        toast.error("Logout failed. Try again.");
+        showError("Logout failed. Try again.");
       }
     } catch (error) {
-      toast.error("Something went wrong during logout.");
-      console.error("Logout error:", error);
+      showError("Something went wrong during logout.");
     }
   };
 

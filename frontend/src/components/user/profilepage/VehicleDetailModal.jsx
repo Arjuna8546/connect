@@ -2,10 +2,10 @@
 import React from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import toast from "react-hot-toast";
 import { registerVehicle } from "../../../Endpoints/APIs";
 import { useDispatch } from "react-redux";
 import { updateVehicles } from "../../../store/slices/UserSlice";
+import { showError, showSuccess } from "../../../utils/toastUtils";
 
 const VehicleDetailModal = ({ isOpen, onClose, user }) => {
   const dispatch = useDispatch()
@@ -31,7 +31,7 @@ const VehicleDetailModal = ({ isOpen, onClose, user }) => {
 
         const response = await registerVehicle({ "user": user.id, ...values })
         if (response?.data?.success === true) {
-          toast.success("Vehicle Registered")
+          showSuccess("Vehicle Registered")
           dispatch(updateVehicles(response.data.data))
           onClose()
         }
@@ -42,11 +42,11 @@ const VehicleDetailModal = ({ isOpen, onClose, user }) => {
         if (resData?.errors) {
           const firstErrorKey = Object.keys(resData.errors)[0];
           const firstErrorMsg = resData.errors[firstErrorKey][0];
-          toast.error(firstErrorMsg);
+          showError(firstErrorMsg);
         } else if (resData?.message) {
-          toast.error(resData.message);
+          showError(resData.message);
         } else {
-          toast.error("Something went wrong. Please try again.");
+          showError("Something went wrong. Please try again.");
         }
       }
       finally {

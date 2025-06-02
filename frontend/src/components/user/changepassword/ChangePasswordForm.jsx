@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import toast from "react-hot-toast";
 import PasswordInput from '../loginpage/Passwordinput';
 import { changepassword } from '../../../Endpoints/APIs';
 import { useNavigate } from 'react-router-dom';
+import { showError, showSuccess } from '../../../utils/toastUtils';
 
 
 function ChangePasswordForm({ email }) {
@@ -32,14 +32,14 @@ function ChangePasswordForm({ email }) {
                 const response = await changepassword({ ...values, "email": email })
                 if (response?.data?.success === true) {
 
-                    toast.success(response?.data?.message)
+                    showSuccess(response?.data?.message)
                     nav('/login')
                 }
             }
             catch (error) {
                 const errorMessage =
                     error?.response?.data?.error || error?.message || "Something went wrong.";
-                toast.error(errorMessage);
+                showError(errorMessage);
             }
             finally {
                 setSubmitting(false);

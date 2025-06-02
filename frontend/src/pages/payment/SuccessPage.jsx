@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { confirm_payment } from "../../Endpoints/APIs";
-import toast from "react-hot-toast";
+import { showError, showSuccess } from "../../utils/toastUtils";
 
 const RedirectPage = () => {
   const navigate = useNavigate();
@@ -24,15 +24,14 @@ const RedirectPage = () => {
 
           if (res.data) {
             if (redirect_status === "succeeded") {
-              toast.success(res.data.message || "Payment succeeded");
+              showSuccess(res.data.message || "Payment succeeded");
               setData(res.data.data);
             } else {
-              toast.error(res.data.message || "Payment failed");
+              showError(res.data.message || "Payment failed");
               setErrorMsg(res.data.message || "Payment failed");
             }
           }
         } catch (error) {
-          console.error(error);
           setErrorMsg("Something went wrong during payment confirmation.");
         } finally {
           setLoading(false);

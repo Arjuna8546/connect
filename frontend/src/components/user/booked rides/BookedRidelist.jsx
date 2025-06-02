@@ -2,11 +2,11 @@ import React, { useRef, useEffect, useState } from "react";
 import BookedRideCard from "./BookedRideCard";
 import { cancelbooking, getbookings } from "../../../Endpoints/APIs";
 import { useSelector } from "react-redux";
-import toast from "react-hot-toast";
 import CancelBooking from "./CancelBooking";
 import { motion } from "framer-motion";
 import LiveLocationModal from "../your_rides/LiveLocationModal";
 import PaymentModal from "../../../pages/payment/PaymentModal";
+import { showError, showSuccess } from "../../../utils/toastUtils";
 
 export default function BookedRidelist() {
 
@@ -58,14 +58,13 @@ export default function BookedRidelist() {
 
             if (res?.data?.success === true) {
                 setBookings(prev => prev?.filter(booking => booking.id !== canelId));
-                toast.success(res.data.message || "Booking cancelled successfully");
+                showSuccess(res.data.message || "Booking cancelled successfully");
             } else {
-                toast.error(res.data?.error || "Failed to cancel booking");
+                showError(res.data?.error || "Failed to cancel booking");
             }
 
         } catch (error) {
-            toast.error(error?.response?.data?.error || "Something went wrong while cancelling the booking");
-            console.error("Cancel booking error:", error);
+            showError(error?.response?.data?.error || "Something went wrong while cancelling the booking");
         }
         finally {
             setIsCancelModalOpen(false)
@@ -116,16 +115,20 @@ export default function BookedRidelist() {
 
     return (
         <section className="px-20 py-12 h-full max-md:p-10 max-sm:p-5">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 py-3">
-                <h2 className="text-2xl font-bold text-white">My Booked Rides</h2>
+            <div className="flex justify-between">
 
-                <div className="flex flex-col sm:flex-row gap-3">
-                    <input
+                <h2 className="text-2xl font-bold text-white">My Booked Rides</h2>
+                <input
                         type="date"
                         value={selectedDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
                         className="bg-[#9b87f5] text-white border border-stone-700 rounded-full px-6 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
                     />
+                </div>
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 py-3">
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                    
                     <div className="flex flex-wrap gap-2">
                         {["active", "pending", "cancelled","completed"].map((item) => (
                             <button

@@ -4,7 +4,7 @@ import { Navigation } from "../../components/user/othercomponent/Navigation";
 import { LocationPanel } from "../../components/user/postride/LocationPanel";
 import MapComponent from "../../components/user/postride/MapComponent";
 import { useLocation, useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
+import { showError } from "../../utils/toastUtils";
 
 const LocationSelector = () => {
     const location = useLocation();
@@ -39,7 +39,7 @@ const LocationSelector = () => {
 
     const handleSelectClick = () => {
         if (!latestMarker.current) {
-            toast.error("Please select a location on the map.For Pickup Exact Point");
+            showError("Please select a location on the map.For Pickup Exact Point");
             return;
         }
 
@@ -53,7 +53,7 @@ const LocationSelector = () => {
                 pickupCoordinates.lng === latestMarker.current.lng;
 
             if (isSameAsPickup) {
-                toast.error("Please select a location on the map.For Drop off Exact Point");
+                showError("Please select a location on the map.For Drop off Exact Point");
                 return;
             }
 

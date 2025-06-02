@@ -3,11 +3,12 @@ import RideCard from "./RideCard";
 import { approveorreject, finishride, getallapproves, getrides, ridecancel, ridedelete, verifybook } from "../../../Endpoints/APIs";
 import { useSelector } from "react-redux";
 import ApprovedRequestModal from "./ApproveRequestModal";
-import toast from "react-hot-toast";
 import DeleteRideModal from "./DeleteRideModal";
 import CancelRideModal from "./CancelRideModal";
 import LiveLocationModal from "./LiveLocationModal";
 import OtpVerificationModal from "./OtpVerificationModal";
+import { showError, showSuccess } from "../../../utils/toastUtils";
+import HowToStartRideModal from "./HowToStartRideModal";
 
 export default function RideList() {
   const user = useSelector((state) => state.user)
@@ -27,6 +28,7 @@ export default function RideList() {
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [bookId, setBookId] = useState(null)
   const [email, setEmail] = useState(null)
+  const [showModal, setShowModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split("T")[0];
@@ -44,7 +46,7 @@ export default function RideList() {
         }
       }
       catch (error) {
-        toast.error(error?.response?.data?.message)
+        showError(error?.response?.data?.message)
       }
     }
     handleEffect(user?.user?.id)
@@ -62,11 +64,11 @@ export default function RideList() {
     try {
       const res = await approveorreject({ book_ride_id: book_ride_id, approve: true })
       if (res?.data?.success === true) {
-        toast.success(res?.data?.message)
+        showSuccess(res?.data?.message)
       }
     }
     catch (error) {
-      toast.error(error?.response?.data?.message)
+      showError(error?.response?.data?.message)
     }
     finally {
       setIsModalOpen(false)
@@ -77,11 +79,11 @@ export default function RideList() {
 
       const res = await approveorreject({ book_ride_id: book_ride_id, approve: false })
       if (res?.data?.success === true) {
-        toast.success(res?.data?.message)
+        showSuccess(res?.data?.message)
       }
     }
     catch (error) {
-      toast.error(error?.response?.data?.message)
+      showError(error?.response?.data?.message)
     }
     finally {
       setIsModalOpen(false)
@@ -96,11 +98,11 @@ export default function RideList() {
     try {
       const res = await ridedelete(deleteId)
       if (res?.data?.success === true) {
-        toast.success(res?.data?.message)
+        showSuccess(res?.data?.message)
       }
     }
     catch (error) {
-      toast.error(error?.response?.data?.error)
+      showError(error?.response?.data?.error)
     }
     finally {
       setIsDeleteModalOpen(false)
@@ -115,11 +117,11 @@ export default function RideList() {
     try {
       const res = await ridecancel({ ride_id: canelId, reason: reason })
       if (res?.data?.success === true) {
-        toast.success(res?.data?.message)
+        showSuccess(res?.data?.message)
       }
     }
     catch (error) {
-      toast.error(error?.response?.data?.error)
+      showError(error?.response?.data?.error)
     }
     finally {
       setIsCancelModalOpen(false)
@@ -174,13 +176,13 @@ export default function RideList() {
     try {
       const res = await verifybook({ otp: otp, bookId: bookId });
       if (res?.data?.success) {
-        toast.success("OTP verified successfully");
+        showSuccess("OTP verified successfully");
         setIsOtpModalOpen(false)
       } else {
-        toast.error(res?.data?.message || "OTP verification failed");
+        showError(res?.data?.message || "OTP verification failed");
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Something went wrong");
+      showError(error?.response?.data?.message || "Something went wrong");
     } finally {
       setRefetch(!refetch)
     }
@@ -191,90 +193,111 @@ export default function RideList() {
     try {
       const res = await finishride({ "location": location, "ride_id": rideId })
       if (res?.data?.success) {
-        toast.success(res?.data?.message)
+        showSuccess(res?.data?.message)
       } else {
-        toast.error(res?.data?.message)
+        showError(res?.data?.message)
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message)
-    }finally{
-      setTimeout(()=>{setLocationModalOpen(false)
-      setRefetch(!refetch)},300)
+      showError(error?.response?.data?.message)
+    } finally {
+      setTimeout(() => {
+        setLocationModalOpen(false)
+        setRefetch(!refetch)
+      }, 300)
     }
   }
 
   return (
-    <section className="px-20 py-12 max-md:p-10 max-sm:p-5">
+    <section className="px-20 py-12 max-md:px-10 max-sm:px-4">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 py-3">
-        <h2 className="text-2xl font-bold text-white">YOUR RIDES</h2>
-
-        <div className="flex flex-col sm:flex-row gap-3">
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="bg-[#9b87f5] text-white border border-stone-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
-          />
-          <div className="flex flex-wrap gap-2">
-            {["active", "cancelled", "completed"].map((item) => (
-              <button
-                key={item}
-                className={`border-none px-4 py-2 rounded-full text-sm font-semibold tracking-wide shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 ${status === item
-                    ? "bg-[#9b87f5] text-white"
-                    : "bg-gray-200 text-black"
-                  }`}
-                onClick={() => setStatus(item)}
-              >
-                {item.charAt(0).toUpperCase() + item.slice(1)} Ride
-              </button>
-            ))}
-          </div>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center w-full gap-4">
+          <h2 className="text-2xl font-bold text-white">YOUR RIDES</h2>
+          <button
+            onClick={() => setShowModal(true)}
+            className="px-6 py-2 bg-[#9b87f5] text-white rounded-full hover:bg-violet-800 text-sm transition-all duration-200"
+          >
+            How to Start a Ride
+          </button>
         </div>
       </div>
-      {rides && rides.length > 0 ? (
-        rides.map((ride, index) => (
-          <RideCard key={index} {...ride} handleBookRequest={handleBookRequest} handleDeleteRide={handleDeleteRide} handleCancelRide={handleCancelRide} connectWs={connectWs} handleOtpVerify={handleOtpVerify} />
-        ))
-      ) : (
-        <div className="flex justify-center items-center p-8">
-          <div className="bg-[#0e0e0e] border border-stone-800 rounded-2xl p-8 shadow-lg transform transition-all hover:scale-102 max-w-md w-full">
-            <div className="flex flex-col items-center space-y-4">
-              {/* Car Icon */}
-              <div className="text-violet-400 animate-bounce">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-16 h-16"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"
-                  />
-                </svg>
+
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mt-4">
+        <input
+          type="date"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+          className="bg-[#9b87f5] text-white border border-stone-700 rounded-full px-5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
+        />
+
+        <div className="flex flex-wrap gap-2">
+          {["active", "cancelled", "completed"].map((item) => (
+            <button
+              key={item}
+              className={`border-none px-4 py-2 rounded-full text-sm font-semibold tracking-wide shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 ${status === item
+                ? "bg-[#9b87f5] text-white"
+                : "bg-gray-200 text-black"
+                }`}
+              onClick={() => setStatus(item)}
+            >
+              {item.charAt(0).toUpperCase() + item.slice(1)} Ride
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-6">
+        {rides && rides.length > 0 ? (
+          rides.map((ride, index) => (
+            <RideCard
+              key={index}
+              {...ride}
+              handleBookRequest={handleBookRequest}
+              handleDeleteRide={handleDeleteRide}
+              handleCancelRide={handleCancelRide}
+              connectWs={connectWs}
+              handleOtpVerify={handleOtpVerify}
+            />
+          ))
+        ) : (
+          <div className="flex justify-center items-center p-4">
+            <div className="bg-[#0e0e0e] border border-stone-800 rounded-2xl p-6 shadow-lg transform transition-all hover:scale-102 w-full max-w-md">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="text-violet-400 animate-bounce">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-12 h-12 sm:w-16 sm:h-16"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"
+                    />
+                  </svg>
+                </div>
+
+                <h3 className="text-violet-400 text-xl sm:text-2xl font-bold">
+                  No Rides Available
+                </h3>
+
+                <p className="text-stone-400 text-sm text-center">
+                  We couldn't find any rides on this date at the moment.
+                </p>
+
+                <div className="w-16 h-0.5 bg-stone-800"></div>
+
+                <p className="text-stone-500 text-xs text-center">
+                  Try adjusting your search date or check back later
+                </p>
               </div>
-
-              <h3 className="text-violet-400 text-2xl font-bold">
-                No Rides Available
-              </h3>
-
-              <p className="text-stone-400 text-sm text-center">
-                We couldn't find any rides on this date at the moment.
-              </p>
-
-              <div className="w-16 h-0.5 bg-stone-800"></div>
-
-              <p className="text-stone-500 text-xs text-center">
-                Try adjusting your search date or check back later
-              </p>
             </div>
           </div>
-        </div>
+        )}
+      </div>
 
-      )}
       {isModalOpen && <ApprovedRequestModal request={approves} onClose={() => setIsModalOpen(false)} onApprove={onApprove} onReject={onReject} />}
       {isDeletModalOpen && <DeleteRideModal isOpen={isDeletModalOpen} onClose={() => {
         setIsDeleteModalOpen(false);
@@ -291,7 +314,7 @@ export default function RideList() {
         handleFinishRide={handleFinishRide}
       />
       {isOtpModalOpen && <OtpVerificationModal isOpen={isOtpModalOpen} onClose={() => setIsOtpModalOpen(!isOtpModalOpen)} email={email} onOtpSubmit={onOtpSubmit} />}
-
+      {showModal && <HowToStartRideModal onClose={() => setShowModal(false)} />}
     </section>
   );
 }

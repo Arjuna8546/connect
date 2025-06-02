@@ -5,6 +5,8 @@ import VehicleSelector from "../../components/user/profilepage/VehicleSelector";
 import { useLocation, useNavigate } from "react-router-dom";
 import VehicleDetailModal from "../../components/user/profilepage/VehicleDetailModal";
 import { useSelector } from "react-redux";
+import { showError,showSuccess } from "../../utils/toastUtils";
+
 
 
 
@@ -29,7 +31,7 @@ const SelectVehicle = () => {
             setVehicles(user.vehicles);
             const selectedVehicle = user.vehicles.find((vehicle) => vehicle.selected_vehicle);
             if (selectedVehicle) {
-                setVehicleId(selectedVehicle.id); 
+                setVehicleId(selectedVehicle.id);
             }
         }
     }, [user])
@@ -44,8 +46,19 @@ const SelectVehicle = () => {
         setVehicleId(id)
     };
     const handleClick = () => {
-        nav('/postride/publish', { state: { ...states, user_id:user?.user?.id,vehicle_id: vehicleId } })
-    }
+        if (!vehicleId) {
+            showError("Please select a vehicle before publishing the ride.");
+            return;
+        }
+
+        nav('/postride/publish', {
+            state: {
+                ...states,
+                user_id: user?.user?.id,
+                vehicle_id: vehicleId,
+            },
+        });
+    };
     return (
         <>
             <link
@@ -55,12 +68,12 @@ const SelectVehicle = () => {
             <Navigation />
             <main className="flex justify-center items-center w-full min-h-[calc(100vh-104px)] px-4 py-6 bg-black">
                 <div className="w-full max-w-3xl p-6 rounded-2xl shadow-lg bg-zinc-800 max-sm:p-4 flex flex-col gap-6 items-center">
-                <div className="flex justify-between items-center w-full">
+                    <div className="flex justify-between items-center w-full">
                         <h2 className="text-xl font-bold text-stone-200">
                             SELECT YOUR VEHICLE
                         </h2>
                         <button
-                           onClick={() => handleVehicleOpen()}
+                            onClick={() => handleVehicleOpen()}
                             className="bg-white text-black p-2 rounded-full"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

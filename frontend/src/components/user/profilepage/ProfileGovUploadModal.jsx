@@ -3,8 +3,8 @@ import React, { useRef, useState } from "react";
 import ImageCroper from "./ImageCroper";
 import { useDispatch } from "react-redux";
 import { setUser } from "../../../store/slices/UserSlice";
-import toast from "react-hot-toast";
 import { updateuser } from "../../../Endpoints/APIs";
+import { showError, showSuccess } from "../../../utils/toastUtils";
 
 const ProfileGovUpload = ({ isOpen, onClose, user }) => {
     const [file, setFile] = useState("");
@@ -48,12 +48,12 @@ const ProfileGovUpload = ({ isOpen, onClose, user }) => {
                 const res = await updateuser({ "user_id": user.id, "gov_url": data.secure_url });
                 if (res.data?.success === true) {
                     dispatch(setUser(res?.data?.userDetails));
-                    toast.success(res?.data?.message);
+                    showSuccess(res?.data?.message);
                     onClose()
                 }
             }
         } catch (error) {
-            console.error("Upload error:", error);
+            showError(error);
         } finally {
             setSubmitting(false);
         }

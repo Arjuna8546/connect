@@ -1,9 +1,9 @@
 "use client";
 import React from "react";
 import Logo from "../components/user/othercomponent/Logo";
-import toast from "react-hot-toast";
 import ForgetPasswordForm from "../components/user/forgetpassword/ForgetPasswordForm";
 import { forgetpassword } from "../Endpoints/APIs";
+import { showError, showSuccess } from "../utils/toastUtils";
 
 
 const ForgetPasswordPage = () => {
@@ -12,12 +12,12 @@ const ForgetPasswordPage = () => {
         try {
             const response = await forgetpassword(values)
              if (response?.data?.success === true) {
-                    toast.success(response.data.message)
+                    showSuccess(response.data.message)
                     setIsModalOpen(true)
                  }
         }
         catch (error) {
-            toast.error(
+            showError(
                 error?.response?.data?.error || "Something went wrong. Please try again."
             );
         }
