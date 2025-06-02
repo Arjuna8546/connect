@@ -11,7 +11,7 @@ const HowToStartRideModal = ({ onClose }) => {
             <li>
               <span className="font-semibold">Install the App:</span>{" "}
               <a
-                href="/app-release.apk"
+                href="/ConnectTracker.apk"
                 download
                 className="text-violet-600 underline"
               >

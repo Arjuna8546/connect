@@ -38,7 +38,7 @@ export const MobileAppSection = () => {
           </p>
 
           <a
-            href="/app-release.apk" 
+            href="ConnectTracker.apk" 
             download
             className="inline-block px-12 py-4 text-xs font-bold tracking-widest text-white uppercase bg-black rounded-[50px]"
           >
