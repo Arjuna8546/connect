@@ -15,9 +15,9 @@ export const LandingPage = () => {
       <Navigation />
       <main className="flex-1">
         <HeroSection />
-        <AboutSection />
-        <NetworkSection />
         <MobileAppSection />
+        <NetworkSection />
+        <AboutSection />
       </main>
       <Footer />
     </div>

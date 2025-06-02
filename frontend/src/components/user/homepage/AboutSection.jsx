@@ -1,23 +1,27 @@
 import { ArrowIcon } from "./Icons";
-
+import RideFlowChart from "./RideFlowChart";
 
 export const AboutSection = () => {
   return (
-    <section className="px-20 py-36 bg-white max-md:px-10 max-sm:px-5 max-sm:py-16">
-      <div className="flex gap-32 items-center mx-auto max-w-screen-xl max-md:flex-col">
-        <div className="bg-zinc-300 h-[600px] w-[600px] max-md:w-full max-md:h-[400px] max-sm:h-[300px]" />
-        <div className="flex-1">
-          <div className="flex gap-2 items-center mb-5 text-xs font-bold tracking-wider text-black uppercase">
+    <section className="px-5 py-16 sm:px-10 sm:py-24 md:px-20 md:py-36 bg-white">
+      <div className="flex flex-col-reverse md:flex-row gap-10 md:gap-20 lg:gap-32 items-center mx-auto max-w-screen-xl">
+        <div className="w-full md:flex-1 text-center md:text-left">
+          <div className="flex justify-center md:justify-start items-center gap-2 mb-4 text-xs font-bold tracking-wider text-black uppercase">
             <ArrowIcon />
             <span>About Us</span>
           </div>
-          <h2 className="mb-10 text-4xl leading-10 text-black max-md:text-3xl max-md:leading-9">
+          <h2 className="mb-8 text-2xl sm:text-3xl md:text-4xl font-semibold text-black leading-snug">
             Seamless Rides. Smarter Connections. Trusted Journeys. Empowering
             Travel. Anytime, Anywhere.
           </h2>
-          <button className="px-12 py-4 text-xs font-bold tracking-widest text-white uppercase bg-black rounded-[50px]">
-            About Optinet
-          </button>
+          <div className="flex justify-center md:justify-start">
+            <button className="px-10 py-3 sm:px-12 sm:py-4 text-xs sm:text-sm font-bold tracking-widest text-white uppercase bg-black rounded-full">
+              App flow
+            </button>
+          </div>
+        </div>
+        <div className="hidden md:block w-full h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px]">
+          <RideFlowChart />
         </div>
       </div>
     </section>

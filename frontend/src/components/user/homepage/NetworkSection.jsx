@@ -2,8 +2,21 @@ import { ArrowIcon } from "./Icons";
 
 export const NetworkSection = () => {
   return (
-    <section className="px-20 py-72 bg-black max-md:px-10 max-md:py-36 max-sm:px-5 max-sm:py-20">
-      <div className="mx-auto text-center max-w-[880px]">
+    <section className="relative overflow-hidden px-20 py-72 bg-black max-md:px-10 max-md:py-36 max-sm:px-5 max-sm:py-20">
+      <video
+        className="absolute top-0 left-0 w-full h-full object-cover z-0"
+        autoPlay
+        muted
+        loop
+        playsInline
+      >
+        <source src="/background.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+
+      <div className="absolute top-0 left-0 w-full h-full bg-black opacity-50 z-10" />
+
+      <div className="relative z-20 mx-auto text-center max-w-[880px]">
         <div className="flex gap-2 justify-center items-center mb-5 text-xs font-bold tracking-wider text-white uppercase">
           <ArrowIcon />
           <span>OUR NETWORK</span>
@@ -32,3 +45,4 @@ export const NetworkSection = () => {
     </section>
   );
 };
+

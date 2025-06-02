@@ -214,7 +214,7 @@ export default function RideList() {
           <h2 className="text-2xl font-bold text-white">YOUR RIDES</h2>
           <button
             onClick={() => setShowModal(true)}
-            className="px-6 py-2 bg-[#9b87f5] text-white rounded-full hover:bg-violet-800 text-sm transition-all duration-200"
+            className="px-6 py-2 bg-[#9b87f5] text-white rounded-full hover:bg-[#8574d2] text-sm transition-all duration-200"
           >
             How to Start a Ride
           </button>

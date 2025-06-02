@@ -19,7 +19,7 @@ export const Navigation = () => {
 
       <nav className="flex gap-6 items-center">
         <button className="flex gap-1.5 items-center text-xs font-bold tracking-widest text-white uppercase max-md:hidden">
-          <span>About us</span>
+          <span onClick={()=>nav("/search")}>Search</span>
           <DropdownIcon />
         </button>
 
